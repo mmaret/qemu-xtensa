@@ -104,6 +104,7 @@ enum {
     XTENSA_OPTION_PROCESSOR_ID,
     XTENSA_OPTION_DEBUG,
     XTENSA_OPTION_TRACE_PORT,
+    XTENSA_OPTION_EXTERN_REGS,
 };
 
 enum {
@@ -332,6 +333,20 @@ typedef struct XtensaConfigList {
     struct XtensaConfigList *next;
 } XtensaConfigList;
 
+typedef struct XtensaExtRegRange {
+    uint32_t base;
+    uint32_t sz;
+    uint32_t offset;
+    void *opaque;
+    uint32_t (*read)(void *opaque, uint32_t offset);
+    void (*write)(void *opaque, uint32_t offset, uint32_t v);
+} XtensaExtRegRange;
+
+typedef struct XtensaExtRegMap {
+    XtensaExtRegRange *map;
+    unsigned sz;
+} XtensaExtRegMap;
+
 typedef struct CPUXtensaState {
     const XtensaConfig *config;
     uint32_t regs[16];
@@ -345,6 +360,8 @@ typedef struct CPUXtensaState {
     xtensa_tlb_entry itlb[7][MAX_TLB_WAY_SIZE];
     xtensa_tlb_entry dtlb[10][MAX_TLB_WAY_SIZE];
     unsigned autorefill_idx;
+
+    XtensaExtRegMap extregs;
 
     int pending_irq_level; /* level of last raised IRQ */
     void **irq_inputs;
@@ -414,6 +431,7 @@ int xtensa_get_physical_addr(CPUXtensaState *env, bool update_tlb,
 void reset_mmu(CPUXtensaState *env);
 void dump_mmu(FILE *f, fprintf_function cpu_fprintf, CPUXtensaState *env);
 void debug_exception_env(CPUXtensaState *new_env, uint32_t cause);
+void xtensa_add_ext_reg(CPUXtensaState *env, const XtensaExtRegRange *reg);
 
 
 #define XTENSA_OPTION_BIT(opt) (((uint64_t)1) << (opt))
