@@ -979,3 +979,69 @@ void HELPER(ule_s)(CPUXtensaState *env, uint32_t br, float32 a, float32 b)
     int v = float32_compare_quiet(a, b, &env->fp_status);
     set_br(env, v != float_relation_greater, br);
 }
+
+
+static int cmp_ext_reg(const void *a, const void *b)
+{
+    const XtensaExtRegRange *key = a;
+    const XtensaExtRegRange *reg = b;
+
+    if (key->base - reg->base < reg->sz || reg->base - key->base < key->sz) {
+        return 0;
+    } else {
+        return key->base < reg->base ? -1 : 1;
+    }
+}
+
+static const XtensaExtRegRange *get_ext_reg(const CPUXtensaState *env,
+        const XtensaExtRegRange *reg)
+{
+    return bsearch(reg, env->extregs.map, env->extregs.sz,
+            sizeof(XtensaExtRegRange), cmp_ext_reg);
+}
+
+void xtensa_add_ext_reg(CPUXtensaState *env, const XtensaExtRegRange *reg)
+{
+    assert(reg->sz > 0);
+    assert(get_ext_reg(env, reg) == NULL);
+
+    if ((env->extregs.sz & (env->extregs.sz + 1)) == 0) {
+        env->extregs.map = realloc(env->extregs.map,
+                (env->extregs.sz + 1) * 2 * sizeof(XtensaExtRegRange));
+    }
+    env->extregs.map[env->extregs.sz] = *reg;
+    ++env->extregs.sz;
+    qsort(env->extregs.map, env->extregs.sz, sizeof(XtensaExtRegRange),
+            cmp_ext_reg);
+}
+
+uint32_t HELPER(rer)(CPUXtensaState *env, uint32_t addr)
+{
+    XtensaExtRegRange key = {
+        .base = addr,
+        .sz = 1,
+    };
+    const XtensaExtRegRange *reg = get_ext_reg(env, &key);
+
+    if (reg) {
+        return reg->read(reg->opaque, addr - reg->base + reg->offset);
+    } else {
+        qemu_log("rer from unknown register 0x%08x\n", addr);
+        return 0;
+    }
+}
+
+void HELPER(wer)(CPUXtensaState *env, uint32_t data, uint32_t addr)
+{
+    XtensaExtRegRange key = {
+        .base = addr,
+        .sz = 1,
+    };
+    const XtensaExtRegRange *reg = get_ext_reg(env, &key);
+
+    if (reg) {
+        reg->write(reg->opaque, addr - reg->base + reg->offset, data);
+    } else {
+        qemu_log("wer to unknown register 0x%08x: 0x%08x\n", addr, data);
+    }
+}
