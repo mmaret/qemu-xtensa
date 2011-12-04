@@ -2,4 +2,5 @@ obj-y += xtensa-semi.o
 obj-y += core-dc232b.o
 obj-y += core-dc233c.o
 obj-y += core-fsf.o
+obj-y += core-test_mmuhifi_c3.o
 obj-y += translate.o op_helper.o helper.o cpu.o
