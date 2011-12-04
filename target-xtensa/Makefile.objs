@@ -7,6 +7,7 @@ obj-y += core-dc232b.o
 obj-y += core-dc233c.o
 obj-y += core-dsp3400.o
 obj-y += core-fsf.o
+obj-y += core-test_mmuhifi_c3.o
 obj-y += core-test_kc705_ca.o
 obj-y += core-test_kc705_be.o
 obj-y += core-dc233_xea3.o
