@@ -9,7 +9,7 @@ SIMFLAGS = -M sim -cpu $(CORE) -nographic -semihosting $(EXTFLAGS) -kernel
 SIMDEBUG = -s -S
 else
 SIM = xt-run
-SIMFLAGS = --xtensa-core=DC_B_232L --exit_with_target_code $(EXTFLAGS)
+SIMFLAGS = --xtensa-core=dsp3400_RC2 --exit_with_target_code $(EXTFLAGS)
 SIMDEBUG = --gdbserve=0
 endif
 

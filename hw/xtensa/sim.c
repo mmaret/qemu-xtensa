@@ -86,7 +86,7 @@ static void xtensa_sim_init(MachineState *machine)
     rom = g_malloc(sizeof(*rom));
     memory_region_init_ram(rom, NULL, "xtensa.rom", 0x1000, &error_fatal);
     vmstate_register_ram_global(rom);
-    memory_region_add_subregion(get_system_memory(), 0xfe000000, rom);
+    memory_region_add_subregion(get_system_memory(), 0x5ffe0000, rom);
 
     if (kernel_filename) {
         uint64_t elf_entry;

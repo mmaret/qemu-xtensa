@@ -49,7 +49,7 @@ main:
 .endm
 
 .macro test name
-    //print test_\name
+    print test_\name
     test_init
 test_\name:
 .global test_\name
