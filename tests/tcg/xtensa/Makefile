@@ -38,6 +38,7 @@ TESTCASES += test_extui.tst
 TESTCASES += test_fail.tst
 TESTCASES += test_interrupt.tst
 TESTCASES += test_loop.tst
+TESTCASES += test_lsc.tst
 TESTCASES += test_mac16.tst
 TESTCASES += test_max.tst
 TESTCASES += test_min.tst
