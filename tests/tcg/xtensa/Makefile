@@ -36,6 +36,7 @@ TESTCASES += test_cache.tst
 TESTCASES += test_clamps.tst
 TESTCASES += test_extui.tst
 TESTCASES += test_fail.tst
+TESTCASES += test_fp0_arith.tst
 TESTCASES += test_interrupt.tst
 TESTCASES += test_loop.tst
 TESTCASES += test_lsc.tst
