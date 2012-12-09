@@ -80,6 +80,7 @@ linker.ld: $(XTENSA_SRC_PATH)/linker.ld.S
 build: $(TESTCASES)
 
 check: $(addprefix run-, $(TESTCASES))
+check-fp: run-test_fp0_arith.tst run-test_fp0_conv.tst run-test_fp1.tst run-test_lsc.tst
 
 run-%.tst: %.tst
 	$(SIM) $(SIMFLAGS) ./$<
