@@ -302,7 +302,8 @@ int cpu_exec(CPUArchState *env)
                     }
 #if defined(TARGET_ARM) || defined(TARGET_SPARC) || defined(TARGET_MIPS) || \
     defined(TARGET_PPC) || defined(TARGET_ALPHA) || defined(TARGET_CRIS) || \
-    defined(TARGET_MICROBLAZE) || defined(TARGET_LM32) || defined(TARGET_UNICORE32)
+    defined(TARGET_MICROBLAZE) || defined(TARGET_LM32) || \
+    defined(TARGET_UNICORE32) || defined(TARGET_XTENSA)
                     if (interrupt_request & CPU_INTERRUPT_HALT) {
                         cpu->interrupt_request &= ~CPU_INTERRUPT_HALT;
                         cpu->halted = 1;

@@ -349,6 +349,11 @@ typedef struct XtensaExtRegMap {
     unsigned sz;
 } XtensaExtRegMap;
 
+typedef struct XtensaIRQController {
+    void *opaque;
+    void *(*get_irq)(void *opaque, unsigned irq);
+} XtensaIRQController;
+
 typedef struct CPUXtensaState {
     const XtensaConfig *config;
     uint32_t regs[16];
@@ -365,6 +370,7 @@ typedef struct CPUXtensaState {
 
     XtensaExtRegMap extregs;
 
+    bool stall;
     int pending_irq_level; /* level of last raised IRQ */
     void **irq_inputs;
     QEMUTimer *ccompare_timer;
@@ -377,8 +383,13 @@ typedef struct CPUXtensaState {
     /* Watchpoints for DBREAK registers */
     CPUWatchpoint *cpu_watchpoint[MAX_NDBREAK];
 
+    XtensaIRQController irq_controller;
+
     CPU_COMMON
 } CPUXtensaState;
+
+struct XtensaMx;
+typedef struct XtensaMx XtensaMx;
 
 #include "cpu-qom.h"
 
@@ -404,13 +415,22 @@ static inline CPUXtensaState *cpu_init(const char *cpu_model)
     return &cpu->env;
 }
 
+XtensaMx *xtensa_mx_init(unsigned n_extint);
+void xtensa_mx_reset(void *opaque);
+void xtensa_mx_register_env(XtensaMx *mx, CPUXtensaState *env);
+XtensaIRQController *xtensa_mx_get_irq_controller(XtensaMx *mx);
+static inline XtensaIRQController *xtensa_env_get_irq_controller(
+        CPUXtensaState *env)
+{
+    return &env->irq_controller;
+}
+
 void xtensa_translate_init(void);
 void xtensa_breakpoint_handler(CPUXtensaState *env);
 int cpu_xtensa_exec(CPUXtensaState *s);
 void xtensa_register_core(XtensaConfigList *node);
 void check_interrupts(CPUXtensaState *s);
 void xtensa_irq_init(CPUXtensaState *env);
-void *xtensa_get_extint(CPUXtensaState *env, unsigned extint);
 void xtensa_advance_ccount(CPUXtensaState *env, uint32_t d);
 void xtensa_timer_irq(CPUXtensaState *env, uint32_t id, uint32_t active);
 void xtensa_rearm_ccompare_timer(CPUXtensaState *env);
@@ -435,12 +455,19 @@ void reset_mmu(CPUXtensaState *env);
 void dump_mmu(FILE *f, fprintf_function cpu_fprintf, CPUXtensaState *env);
 void debug_exception_env(CPUXtensaState *new_env, uint32_t cause);
 void xtensa_add_ext_reg(CPUXtensaState *env, const XtensaExtRegRange *reg);
+void xtensa_stall(CPUXtensaState *env, bool stall);
 
 static inline void xtensa_select_static_vectors(CPUXtensaState *env,
         unsigned n)
 {
     assert(n < 2);
     env->static_vectors = n;
+}
+
+static inline void *xtensa_get_extint(XtensaIRQController *irqc,
+        unsigned extint)
+{
+    return irqc->get_irq(irqc->opaque, extint);
 }
 
 #define XTENSA_OPTION_BIT(opt) (((uint64_t)1) << (opt))
@@ -550,7 +577,7 @@ static inline int cpu_has_work(CPUState *cpu)
 {
     CPUXtensaState *env = &XTENSA_CPU(cpu)->env;
 
-    return env->pending_irq_level;
+    return !env->stall && env->pending_irq_level;
 }
 
 static inline void cpu_pc_from_tb(CPUXtensaState *env, TranslationBlock *tb)
