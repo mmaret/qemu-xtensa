@@ -353,6 +353,8 @@ static void lx_init(const LxBoardDesc *board, MachineState *machine)
     MemoryRegion *system_memory = get_system_memory();
     XtensaCPU *cpu = NULL;
     CPUXtensaState *env = NULL;
+    XtensaMx *mx = NULL;
+    XtensaIRQController *ic;
     MemoryRegion *ram, *rom, *system_io;
     DriveInfo *dinfo;
     pflash_t *flash = NULL;
@@ -368,6 +370,10 @@ static void lx_init(const LxBoardDesc *board, MachineState *machine)
         cpu_model = XTENSA_DEFAULT_CPU_MODEL;
     }
 
+    if (smp_cpus > 1) {
+        mx = xtensa_mx_init(2);
+        qemu_register_reset(xtensa_mx_reset, mx);
+    }
     for (n = 0; n < smp_cpus; n++) {
         cpu = cpu_xtensa_init(cpu_model);
         if (cpu == NULL) {
@@ -377,12 +383,21 @@ static void lx_init(const LxBoardDesc *board, MachineState *machine)
         }
         env = &cpu->env;
 
+        if (mx) {
+            xtensa_mx_register_env(mx, env);
+        }
         env->sregs[PRID] = n;
+        xtensa_select_static_vectors(env, n != 0);
         qemu_register_reset(lx60_reset, cpu);
         /* Need MMU initialized prior to ELF loading,
          * so that ELF gets loaded into virtual addresses
          */
         cpu_reset(CPU(cpu));
+    }
+    if (smp_cpus > 1) {
+        ic = xtensa_mx_get_irq_controller(mx);
+    } else {
+        ic = xtensa_env_get_irq_controller(env);
     }
 
     ram = g_malloc(sizeof(*ram));
@@ -400,14 +415,14 @@ static void lx_init(const LxBoardDesc *board, MachineState *machine)
     lx60_spi_init(system_io, 0x0d0a0000);
     if (nd_table[0].used) {
         lx60_net_init(system_io, 0x0d030000, 0x0d030400, 0x0d800000,
-                xtensa_get_extint(env, 1), nd_table);
+                xtensa_get_extint(ic, 1), nd_table);
     }
 
     if (!serial_hds[0]) {
         serial_hds[0] = qemu_chr_new("serial0", "null", NULL);
     }
 
-    serial_mm_init(system_io, 0x0d050020, 2, xtensa_get_extint(env, 0),
+    serial_mm_init(system_io, 0x0d050020, 2, xtensa_get_extint(ic, 0),
             115200, serial_hds[0], DEVICE_NATIVE_ENDIAN);
 
     dinfo = drive_get(IF_PFLASH, 0, 0);

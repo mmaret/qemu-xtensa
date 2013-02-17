@@ -1045,3 +1045,16 @@ void HELPER(wer)(CPUXtensaState *env, uint32_t data, uint32_t addr)
         qemu_log("wer to unknown register 0x%08x: 0x%08x\n", addr, data);
     }
 }
+
+void xtensa_stall(CPUXtensaState *env, bool stall)
+{
+    CPUState *cpu = CPU(xtensa_env_get_cpu(env));
+
+    env->stall = stall;
+    if (stall) {
+        cpu_interrupt(cpu, CPU_INTERRUPT_HALT);
+    } else {
+        cpu_reset_interrupt(cpu, CPU_INTERRUPT_HALT);
+        cpu->halted = 0;
+    }
+}
