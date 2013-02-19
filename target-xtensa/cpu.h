@@ -287,6 +287,7 @@ typedef struct XtensaGdbReg {
     int targno;
     int type;
     int group;
+    unsigned size;
 } XtensaGdbReg;
 
 typedef struct XtensaGdbRegmap {

@@ -1721,7 +1721,13 @@ static int cpu_gdb_read_register(CPUXtensaState *env, uint8_t *mem_buf, int n)
         break;
 
     case 4: /*f*/
-        GET_REG32(float32_val(env->fregs[reg->targno & 0x0f]));
+        if (reg->size == 4) {
+            GET_REG32(float32_val(env->fregs[reg->targno & 0x0f]));
+        } else if (reg->size == 8) {
+            GET_REG64(float64_val(env->fregs[reg->targno & 0x0f]));
+        } else {
+            return 0;
+        }
         break;
 
     case 8: /*a*/
@@ -1765,7 +1771,15 @@ static int cpu_gdb_write_register(CPUXtensaState *env, uint8_t *mem_buf, int n)
         break;
 
     case 4: /*f*/
-        env->fregs[reg->targno & 0x0f] = make_float32(tmp);
+        if (reg->size == 4) {
+		env->fregs[reg->targno & 0x0f] = make_float32(tmp);
+		return 4;
+        } else if (reg->size == 8) {
+		env->fregs[reg->targno & 0x0f] = make_float64(tmp);
+		return 8;
+        } else {
+            return 0;
+        }
         break;
 
     case 8: /*a*/
