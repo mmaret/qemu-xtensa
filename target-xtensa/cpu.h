@@ -402,6 +402,11 @@ typedef struct CPUXtensaState {
     XtensaCcompareTimer ccompare[MAX_NCCOMPARE];
     uint32_t ccount_offset;
 
+    uint32_t spin_pc;
+    uint32_t spin_addr;
+    unsigned spin_count;
+    uint32_t spin_ccount;
+
     int exception_taken;
     unsigned static_vectors;
 

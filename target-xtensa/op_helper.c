@@ -483,6 +483,23 @@ void HELPER(check_atomctl)(CPUXtensaState *env, uint32_t pc, uint32_t vaddr)
     default:
         break;
     }
+
+    /*
+     * Detect tight spinlock loops and don't waste time if we're looping,
+     * call cpu_exit to relax and give other CPUs chance to release the lock
+     */
+    if (pc == env->spin_pc && vaddr == env->spin_addr) {
+        if (++env->spin_count > 2 &&
+                env->sregs[CCOUNT] - env->spin_ccount < 100) {
+            cpu_exit(CPU(xtensa_env_get_cpu(env)));
+            env->spin_count = 1;
+        }
+    } else {
+        env->spin_pc = pc;
+        env->spin_addr = vaddr;
+        env->spin_count = 1;
+    }
+    env->spin_ccount = env->sregs[CCOUNT];
 }
 
 void HELPER(wsr_rasid)(CPUXtensaState *env, uint32_t v)
