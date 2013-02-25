@@ -48,6 +48,7 @@ static void xtensa_sim_init(QEMUMachineInitArgs *args)
 {
     XtensaCPU *cpu = NULL;
     CPUXtensaState *env = NULL;
+    XtensaMx *mx = NULL;
     MemoryRegion *ram, *rom;
     ram_addr_t ram_size = args->ram_size;
     const char *cpu_model = args->cpu_model;
@@ -58,6 +59,10 @@ static void xtensa_sim_init(QEMUMachineInitArgs *args)
         cpu_model = XTENSA_DEFAULT_CPU_MODEL;
     }
 
+    if (smp_cpus > 1) {
+        mx = xtensa_mx_init(2);
+        qemu_register_reset(xtensa_mx_reset, mx);
+    }
     for (n = 0; n < smp_cpus; n++) {
         cpu = cpu_xtensa_init(cpu_model);
         if (cpu == NULL) {
@@ -66,7 +71,11 @@ static void xtensa_sim_init(QEMUMachineInitArgs *args)
         }
         env = &cpu->env;
 
+        if (mx) {
+            xtensa_mx_register_env(mx, env);
+        }
         env->sregs[PRID] = n;
+        xtensa_select_static_vectors(env, n != 0);
         qemu_register_reset(sim_reset, cpu);
         /* Need MMU initialized prior to ELF loading,
          * so that ELF gets loaded into virtual addresses
