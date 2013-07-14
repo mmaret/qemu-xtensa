@@ -130,6 +130,7 @@ struct XtensaMx {
     uint32_t mipipart;
     uint32_t runstall;
 
+    QEMUTimer *timer;
     void **irq_inputs;
     XtensaIRQController irq_controller;
     struct XtensaMxCpu {
@@ -376,6 +377,12 @@ static void *xtensa_mx_get_irq(void *opaque, unsigned irq)
     return mx->irq_inputs[irq + 1];
 }
 
+static void xtensa_mx_timer_cb(void *opaque)
+{
+    XtensaMx *mx = opaque;
+    qemu_mod_timer(mx->timer, qemu_get_clock_ns(vm_clock) + get_ticks_per_sec() / 100);
+}
+
 XtensaMx *xtensa_mx_init(unsigned n_irq)
 {
     XtensaMx *mx = calloc(1, sizeof(XtensaMx));
@@ -384,6 +391,8 @@ XtensaMx *xtensa_mx_init(unsigned n_irq)
             xtensa_mx_set_irq, mx, n_irq + 1);
     mx->irq_controller.opaque = mx;
     mx->irq_controller.get_irq = xtensa_mx_get_irq;
+    mx->timer = qemu_new_timer_ns(vm_clock,
+            xtensa_mx_timer_cb, mx);
     return mx;
 }
 
@@ -406,6 +415,7 @@ void xtensa_mx_reset(void *opaque)
     for (i = 0; i < mx->n_cpu; ++i) {
         xtensa_stall(mx->cpu[i].env, i > 0);
     }
+    qemu_mod_timer(mx->timer, qemu_get_clock_ns(vm_clock) + get_ticks_per_sec() / 100);
 }
 
 XtensaIRQController *xtensa_mx_get_irq_controller(XtensaMx *mx)
