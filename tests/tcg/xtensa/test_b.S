@@ -206,12 +206,12 @@ test bbs
 test_end
 
 test bbsi
-    movi    a2, 0x00020000
-    bbsi    a2, 17, 1f
+    movi    a2, 0x00040000
+    bbsi    a2, 18, 1f
     test_fail
 1:
-    movi    a2, 0xfffdffff
-    bbsi    a2, 17, 1f
+    movi    a2, 0xfffbffff
+    bbsi    a2, 18, 1f
     j       2f
 1:
     test_fail

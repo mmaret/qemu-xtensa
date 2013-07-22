@@ -309,7 +309,13 @@ static void gen_advance_ccount_cond(DisasContext *dc)
 {
     if (dc->ccount_delta > 0) {
         TCGv_i32 tmp = tcg_const_i32(dc->ccount_delta);
+        if (use_icount) {
+            gen_io_start();
+        }
         gen_helper_advance_ccount(cpu_env, tmp);
+        if (use_icount) {
+            gen_io_end();
+        }
         tcg_temp_free(tmp);
     }
 }
@@ -669,11 +675,22 @@ static void gen_wsr_cpenable(DisasContext *dc, uint32_t sr, TCGv_i32 v)
     gen_jumpi_check_loop_end(dc, -1);
 }
 
+static void gen_check_interrupts(void)
+{
+    if (use_icount) {
+        gen_io_start();
+    }
+    gen_helper_check_interrupts(cpu_env);
+    if (use_icount) {
+        gen_io_end();
+    }
+}
+
 static void gen_wsr_intset(DisasContext *dc, uint32_t sr, TCGv_i32 v)
 {
     tcg_gen_andi_i32(cpu_SR[sr], v,
             dc->config->inttype_mask[INTTYPE_SOFTWARE]);
-    gen_helper_check_interrupts(cpu_env);
+    gen_check_interrupts();
     gen_jumpi_check_loop_end(dc, 0);
 }
 
@@ -687,13 +704,13 @@ static void gen_wsr_intclear(DisasContext *dc, uint32_t sr, TCGv_i32 v)
             dc->config->inttype_mask[INTTYPE_SOFTWARE]);
     tcg_gen_andc_i32(cpu_SR[INTSET], cpu_SR[INTSET], tmp);
     tcg_temp_free(tmp);
-    gen_helper_check_interrupts(cpu_env);
+    gen_check_interrupts();
 }
 
 static void gen_wsr_intenable(DisasContext *dc, uint32_t sr, TCGv_i32 v)
 {
     tcg_gen_mov_i32(cpu_SR[sr], v);
-    gen_helper_check_interrupts(cpu_env);
+    gen_check_interrupts();
     gen_jumpi_check_loop_end(dc, 0);
 }
 
@@ -707,7 +724,7 @@ static void gen_wsr_ps(DisasContext *dc, uint32_t sr, TCGv_i32 v)
     }
     tcg_gen_andi_i32(cpu_SR[sr], v, mask);
     reset_used_window(dc);
-    gen_helper_check_interrupts(cpu_env);
+    gen_check_interrupts();
     /* This can change mmu index and tb->flags, so exit tb */
     gen_jumpi_check_loop_end(dc, -1);
 }
@@ -736,7 +753,7 @@ static void gen_wsr_ccompare(DisasContext *dc, uint32_t sr, TCGv_i32 v)
         gen_advance_ccount(dc);
         tcg_gen_mov_i32(cpu_SR[sr], v);
         tcg_gen_andi_i32(cpu_SR[INTSET], cpu_SR[INTSET], ~int_bit);
-        gen_helper_check_interrupts(cpu_env);
+        gen_check_interrupts();
     }
 }
 
@@ -822,9 +839,16 @@ static void gen_waiti(DisasContext *dc, uint32_t imm4)
     TCGv_i32 pc = tcg_const_i32(dc->next_pc);
     TCGv_i32 intlevel = tcg_const_i32(imm4);
     gen_advance_ccount(dc);
+    if (use_icount) {
+        gen_io_start();
+    }
     gen_helper_waiti(cpu_env, pc, intlevel);
+    if (use_icount) {
+        gen_io_end();
+    }
     tcg_temp_free(pc);
     tcg_temp_free(intlevel);
+    gen_jumpi_check_loop_end(dc, 0);
 }
 
 static void gen_window_check1(DisasContext *dc, unsigned r1)
@@ -1120,7 +1144,7 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                         case 0: /*RFEx*/
                             gen_check_privilege(dc);
                             tcg_gen_andi_i32(cpu_SR[PS], cpu_SR[PS], ~PS_EXCM);
-                            gen_helper_check_interrupts(cpu_env);
+                            gen_check_interrupts();
                             gen_jump(dc, cpu_SR[EPC1]);
                             break;
 
@@ -1154,7 +1178,7 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                                 }
 
                                 gen_helper_restore_owb(cpu_env);
-                                gen_helper_check_interrupts(cpu_env);
+                                gen_check_interrupts();
                                 gen_jump(dc, cpu_SR[EPC1]);
 
                                 tcg_temp_free(tmp);
@@ -1173,7 +1197,7 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                             gen_check_privilege(dc);
                             tcg_gen_mov_i32(cpu_SR[PS],
                                     cpu_SR[EPS2 + RRR_S - 2]);
-                            gen_helper_check_interrupts(cpu_env);
+                            gen_check_interrupts();
                             gen_jump(dc, cpu_SR[EPC1 + RRR_S - 1]);
                         } else {
                             qemu_log("RFI %d is illegal\n", RRR_S);
@@ -1229,7 +1253,7 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                     tcg_gen_mov_i32(cpu_R[RRR_T], cpu_SR[PS]);
                     tcg_gen_andi_i32(cpu_SR[PS], cpu_SR[PS], ~PS_INTLEVEL);
                     tcg_gen_ori_i32(cpu_SR[PS], cpu_SR[PS], RRR_S);
-                    gen_helper_check_interrupts(cpu_env);
+                    gen_check_interrupts();
                     gen_jumpi_check_loop_end(dc, 0);
                     break;
 
