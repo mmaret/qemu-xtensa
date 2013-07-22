@@ -2420,10 +2420,11 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
         } else if (strcmp(p,"sThreadInfo") == 0) {
         report_cpuinfo:
             if (s->query_cpu) {
+                CPUState *cpu = ENV_GET_CPU(s->query_cpu);
                 snprintf(buf, sizeof(buf), "m%x",
-                         cpu_index(ENV_GET_CPU(s->query_cpu)));
+                         cpu_index(cpu));
                 put_packet(s, buf);
-                s->query_cpu = ENV_GET_CPU(s->query_cpu)->next_cpu->env_ptr;
+                s->query_cpu = cpu->next_cpu ? cpu->next_cpu->env_ptr : NULL;
             } else
                 put_packet(s, "l");
             break;
