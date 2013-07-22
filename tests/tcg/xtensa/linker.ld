@@ -65,6 +65,9 @@ SECTIONS
     . = 0x000003c0;
         *(.vector.double)
         *(.vector.double.*)
+    . = 0x00000500;
+	*(.secondary)
+	*(.secondary.*)
     } > ram
 
 	.text :
@@ -73,7 +76,6 @@ SECTIONS
 		*(.text .stub .text.* .gnu.linkonce.t.* .literal .literal.*)
 		_etext = .;
 	} > ram
-
 	.rodata :
 	{
 		. = ALIGN(4);

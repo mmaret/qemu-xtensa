@@ -1,10 +1,10 @@
 -include ../../../config-host.mak
 
-CROSS=xtensa-dc232b-elf-
+CROSS=xtensa-test_mmuhifi_c3-elf-
 
 ifndef XT
 SIM = ../../../xtensa-softmmu/qemu-system-xtensa
-SIMFLAGS = -M sim -cpu dc232b -nographic -semihosting $(EXTFLAGS) -kernel
+SIMFLAGS = -M sim -cpu test_mmuhifi_c3 -smp 2 -nographic -semihosting $(EXTFLAGS) -kernel
 SIMDEBUG = -s -S
 else
 SIM = xt-run
@@ -49,6 +49,7 @@ TESTCASES += test_s32c1i.tst
 TESTCASES += test_sar.tst
 TESTCASES += test_sext.tst
 TESTCASES += test_shift.tst
+TESTCASES += test_smp.tst
 TESTCASES += test_sr.tst
 TESTCASES += test_timer.tst
 TESTCASES += test_windowed.tst
