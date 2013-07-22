@@ -318,7 +318,7 @@ static void xtensa_mx_cpu_ext_reg_write(void *opaque, uint32_t offset,
                 xtensa_stall(mx->cpu[i].env, v & 1);
             }
         }
-        cpu_exit(cpu->env);
+        cpu_exit(ENV_GET_CPU(cpu->env));
         break;
     }
 }

@@ -486,7 +486,7 @@ void HELPER(check_atomctl)(CPUXtensaState *env, uint32_t pc, uint32_t vaddr)
     if (pc == env->spin_pc && vaddr == env->spin_addr) {
         if (++env->spin_count > 2 &&
                 env->sregs[CCOUNT] - env->spin_ccount < 100) {
-            cpu_exit(env);
+            cpu_exit(ENV_GET_CPU(env));
             env->spin_count = 1;
         }
     } else {
@@ -1057,12 +1057,14 @@ void HELPER(wer)(CPUXtensaState *env, uint32_t data, uint32_t addr)
 
 void xtensa_stall(CPUXtensaState *env, bool stall)
 {
+    CPUState *cs = ENV_GET_CPU(env);
     env->stall = stall;
     if (stall) {
-        cpu_interrupt(env, CPU_INTERRUPT_HALT);
+        cs->halted = 1;
+        cpu_interrupt(cs, CPU_INTERRUPT_HALT);
     } else {
-        cpu_reset_interrupt(env, CPU_INTERRUPT_HALT);
-        env->halted = 0;
+        cpu_reset_interrupt(cs, CPU_INTERRUPT_HALT);
+        cs->halted = 0;
     }
 }
 

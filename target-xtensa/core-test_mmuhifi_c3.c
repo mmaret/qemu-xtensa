@@ -21,7 +21,7 @@ static const XtensaConfig test_mmuhifi_c3 = {
     EXCEPTIONS_SECTION,
     INTERRUPTS_SECTION,
     TLB_SECTION,
-    .clock_freq_khz = 10000,
+    .clock_freq_khz = 50000,
 };
 
 REGISTER_CORE(test_mmuhifi_c3)
