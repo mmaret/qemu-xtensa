@@ -1,6 +1,6 @@
 -include ../../../config-host.mak
 
-CORE=dc232b
+CORE=dsp3400
 CROSS=xtensa-$(CORE)-elf-
 
 ifndef XT
@@ -22,6 +22,7 @@ XTENSA_SRC_PATH = $(SRC_PATH)/tests/tcg/xtensa
 INCLUDE_DIRS = $(XTENSA_SRC_PATH) $(SRC_PATH)/target-xtensa/core-$(CORE)
 XTENSA_INC = $(addprefix -I,$(INCLUDE_DIRS))
 
+ASFLAGS = -Wa,--no-absolute-literals
 LDFLAGS = -Tlinker.ld
 
 CRT        = crt.o vectors.o
