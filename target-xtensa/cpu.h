@@ -268,6 +268,8 @@ typedef enum {
     INTTYPE_MAX
 } interrupt_type;
 
+struct CPUXtensaState;
+
 typedef struct xtensa_tlb_entry {
     uint32_t vaddr;
     uint32_t paddr;
@@ -295,6 +297,11 @@ typedef struct XtensaGdbRegmap {
     /* PC + a + ar + sr + ur */
     XtensaGdbReg reg[1 + 16 + 64 + 256 + 256];
 } XtensaGdbRegmap;
+
+typedef struct XtensaCcompareTimer {
+    struct CPUXtensaState *env;
+    QEMUTimer *timer;
+} XtensaCcompareTimer;
 
 typedef struct XtensaConfig {
     const char *name;
@@ -352,9 +359,8 @@ typedef struct CPUXtensaState {
 
     int pending_irq_level; /* level of last raised IRQ */
     void **irq_inputs;
-    QEMUTimer *ccompare_timer;
-    uint32_t wake_ccount;
-    int64_t halt_clock;
+    XtensaCcompareTimer ccompare[MAX_NCCOMPARE];
+    uint64_t ccount_time;
 
     int exception_taken;
 
