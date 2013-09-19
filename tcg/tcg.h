@@ -379,16 +379,18 @@ static inline TCGCond tcg_high_cond(TCGCond c)
     }
 }
 
-#define TEMP_VAL_DEAD  0
-#define TEMP_VAL_REG   1
-#define TEMP_VAL_MEM   2
-#define TEMP_VAL_CONST 3
+typedef enum TCGTempType {
+    TEMP_VAL_DEAD,
+    TEMP_VAL_REG,
+    TEMP_VAL_MEM,
+    TEMP_VAL_CONST,
+} TCGTempType;
 
 /* XXX: optimize memory layout */
 typedef struct TCGTemp {
     TCGType base_type;
     TCGType type;
-    int val_type;
+    TCGTempType val_type;
     int reg;
     tcg_target_long val;
     int mem_reg;
