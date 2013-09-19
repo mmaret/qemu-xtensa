@@ -108,35 +108,39 @@ void alpha_translate_init(void)
     p = cpu_reg_names;
     for (i = 0; i < 31; i++) {
         sprintf(p, "ir%d", i);
-        cpu_ir[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_ir[i] = tcg_global_mem_new_i64(cpu_env,
                                            offsetof(CPUAlphaState, ir[i]), p);
         p += (i < 10) ? 4 : 5;
 
         sprintf(p, "fir%d", i);
-        cpu_fir[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_fir[i] = tcg_global_mem_new_i64(cpu_env,
                                             offsetof(CPUAlphaState, fir[i]), p);
         p += (i < 10) ? 5 : 6;
     }
 
-    cpu_pc = tcg_global_mem_new_i64(TCG_AREG0,
+    cpu_pc = tcg_global_mem_new_i64(cpu_env,
                                     offsetof(CPUAlphaState, pc), "pc");
 
-    cpu_lock_addr = tcg_global_mem_new_i64(TCG_AREG0,
-					   offsetof(CPUAlphaState, lock_addr),
-					   "lock_addr");
-    cpu_lock_st_addr = tcg_global_mem_new_i64(TCG_AREG0,
-					      offsetof(CPUAlphaState, lock_st_addr),
-					      "lock_st_addr");
-    cpu_lock_value = tcg_global_mem_new_i64(TCG_AREG0,
-					    offsetof(CPUAlphaState, lock_value),
-					    "lock_value");
+    cpu_lock_addr = tcg_global_mem_new_i64(cpu_env,
+                                           offsetof(CPUAlphaState, lock_addr),
+                                           "lock_addr");
+    cpu_lock_st_addr = tcg_global_mem_new_i64(cpu_env,
+                                              offsetof(CPUAlphaState,
+                                                       lock_st_addr),
+                                              "lock_st_addr");
+    cpu_lock_value = tcg_global_mem_new_i64(cpu_env,
+                                            offsetof(CPUAlphaState,
+                                                     lock_value),
+                                            "lock_value");
 
-    cpu_unique = tcg_global_mem_new_i64(TCG_AREG0,
-                                        offsetof(CPUAlphaState, unique), "unique");
+    cpu_unique = tcg_global_mem_new_i64(cpu_env,
+                                        offsetof(CPUAlphaState, unique),
+                                        "unique");
 #ifndef CONFIG_USER_ONLY
-    cpu_sysval = tcg_global_mem_new_i64(TCG_AREG0,
-                                        offsetof(CPUAlphaState, sysval), "sysval");
-    cpu_usp = tcg_global_mem_new_i64(TCG_AREG0,
+    cpu_sysval = tcg_global_mem_new_i64(cpu_env,
+                                        offsetof(CPUAlphaState, sysval),
+                                        "sysval");
+    cpu_usp = tcg_global_mem_new_i64(cpu_env,
                                      offsetof(CPUAlphaState, usp), "usp");
 #endif
 
