@@ -440,9 +440,9 @@ struct TCGContext {
                                corresponding output argument needs to be
                                sync to memory. */
     
-    /* tells in which temporary a given register is. It does not take
+    /* Tells in which temporary a given register is. It does not take
        into account fixed registers */
-    int reg_to_temp[TCG_TARGET_NB_REGS];
+    TCGTemp *reg_to_temp[TCG_TARGET_NB_REGS];
     TCGRegSet reserved_regs;
     intptr_t current_frame_offset;
     intptr_t frame_start;
