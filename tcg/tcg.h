@@ -216,14 +216,17 @@ typedef tcg_target_ulong TCGArg;
    TCG_MAX_HELPER_LABELS is defined as same as OPC_BUF_SIZE in exec-all.h. */
 #define TCG_MAX_QEMU_LDST       640
 
+QEMU_BUILD_BUG_ON(TCG_TARGET_NB_REGS > 64);
+QEMU_BUILD_BUG_ON(NB_MMU_MODES > 8);
+
 typedef struct TCGLabelQemuLdst {
-    int is_ld:1;            /* qemu_ld: 1, qemu_st: 0 */
-    int opc:4;
-    int addrlo_reg;         /* reg index for low word of guest virtual addr */
-    int addrhi_reg;         /* reg index for high word of guest virtual addr */
-    int datalo_reg;         /* reg index for low word to be loaded or stored */
-    int datahi_reg;         /* reg index for high word to be loaded or stored */
-    int mem_index;          /* soft MMU memory index */
+    int is_ld          : 1;  /* qemu_ld: 1, qemu_st: 0 */
+    int opc            : 4;
+    unsigned mem_index : 3;  /* asserted max idx < 8 */
+    TCGReg addrlo_reg  : 6;  /* asserted max regno < 64 */
+    TCGReg addrhi_reg  : 6;
+    TCGReg datalo_reg  : 6;
+    TCGReg datahi_reg  : 6;
     uint8_t *raddr;         /* gen code addr of the next IR of qemu_ld/st IR */
     uint8_t *label_ptr[2];  /* label pointers to be updated */
 } TCGLabelQemuLdst;
