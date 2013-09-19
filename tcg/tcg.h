@@ -394,7 +394,7 @@ typedef struct TCGTemp {
     TCGType base_type;
     TCGType type;
     TCGTempType val_type;
-    int reg;
+    TCGReg reg;
     tcg_target_long val;
     struct TCGTemp *mem_base;
     intptr_t mem_offset;
@@ -539,12 +539,12 @@ void tcg_func_start(TCGContext *s);
 int tcg_gen_code(TCGContext *s, uint8_t *gen_code_buf);
 int tcg_gen_code_search_pc(TCGContext *s, uint8_t *gen_code_buf, long offset);
 
-void tcg_set_frame(TCGContext *s, int reg, intptr_t start, intptr_t size);
+void tcg_set_frame(TCGContext *s, TCGReg reg, intptr_t start, intptr_t size);
 
 int tcg_global_mem_new_internal(TCGType, TCGv_ptr, intptr_t, const char *);
 
-TCGv_i32 tcg_global_reg_new_i32(int reg, const char *name);
-TCGv_i64 tcg_global_reg_new_i64(int reg, const char *name);
+TCGv_i32 tcg_global_reg_new_i32(TCGReg reg, const char *name);
+TCGv_i64 tcg_global_reg_new_i64(TCGReg reg, const char *name);
 
 TCGv_i32 tcg_temp_new_internal_i32(int temp_local);
 TCGv_i64 tcg_temp_new_internal_i64(int temp_local);
