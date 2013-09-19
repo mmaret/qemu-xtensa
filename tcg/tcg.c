@@ -1664,10 +1664,8 @@ static inline void temp_dead(TCGContext *s, TCGTemp *ts)
 
 /* sync a temporary to memory. 'allocated_regs' is used in case a
    temporary registers needs to be allocated to store a constant. */
-static inline void temp_sync(TCGContext *s, int temp, TCGRegSet allocated_regs)
+static void temp_sync(TCGContext *s, TCGTemp *ts, TCGRegSet allocated_regs)
 {
-    TCGTemp *ts = &s->temps[temp];
-
     if (!ts->fixed_reg) {
         switch(ts->val_type) {
         case TEMP_VAL_CONST:
@@ -1701,7 +1699,7 @@ static inline void temp_save(TCGContext *s, int temp, TCGRegSet allocated_regs)
        in memory. Keep an assert for safety. */
     assert(ts->val_type == TEMP_VAL_MEM || ts->fixed_reg);
 #else
-    temp_sync(s, temp, allocated_regs);
+    temp_sync(s, ts, allocated_regs);
     temp_dead(s, ts);
 #endif
 }
@@ -1726,11 +1724,13 @@ static void sync_globals(TCGContext *s, TCGRegSet allocated_regs)
     int i;
 
     for (i = 0; i < s->nb_globals; i++) {
+        TCGTemp *ts = &s->temps[i];
 #ifdef USE_LIVENESS_ANALYSIS
-        assert(s->temps[i].val_type != TEMP_VAL_REG || s->temps[i].fixed_reg ||
-               s->temps[i].mem_coherent);
+        assert(ts->val_type != TEMP_VAL_REG
+               || ts->fixed_reg
+               || ts->mem_coherent);
 #else
-        temp_sync(s, i, allocated_regs);
+        temp_sync(s, ts, allocated_regs);
 #endif
     }
 }
@@ -1785,7 +1785,7 @@ static void tcg_reg_alloc_movi(TCGContext *s, const TCGArg *args,
         ots->val = val;
     }
     if (NEED_SYNC_ARG(0)) {
-        temp_sync(s, args[0], s->reserved_regs);
+        temp_sync(s, ots, s->reserved_regs);
     }
     if (IS_DEAD_ARG(0)) {
         temp_dead(s, ots);
