@@ -808,7 +808,7 @@ static void tcg_reg_alloc_start(TCGContext *s)
 static char *tcg_get_arg_str_ptr(TCGContext *s, char *buf, int buf_size,
                                  TCGTemp *ts)
 {
-    int idx = ts - s->temps;
+    int idx = temp_idx(s, ts);
 
     if (idx < s->nb_globals) {
         pstrcpy(buf, buf_size, ts->name);
@@ -1593,7 +1593,7 @@ static inline void tcg_reg_sync(TCGContext *s, TCGReg reg)
     assert(ts->val_type == TEMP_VAL_REG);
     if (!ts->mem_coherent && !ts->fixed_reg) {
         if (!ts->mem_allocated) {
-            temp_allocate_frame(s, ts - s->temps);
+            temp_allocate_frame(s, temp_idx(s, ts));
         }
         tcg_out_st(s, ts->type, reg, ts->mem_base->reg, ts->mem_offset);
     }
@@ -1673,7 +1673,7 @@ static void temp_load(TCGContext *s, TCGTemp *ts, TCGRegSet desired_regs,
 /* mark a temporary as dead. */
 static inline void temp_dead(TCGContext *s, TCGTemp *ts)
 {
-    int idx = ts - s->temps;
+    int idx = temp_idx(s, ts);
     if (ts->fixed_reg) {
         return;
     }
