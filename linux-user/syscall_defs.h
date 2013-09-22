@@ -66,7 +66,8 @@
 #if defined(TARGET_I386) || defined(TARGET_ARM) || defined(TARGET_SH4) \
     || defined(TARGET_M68K) || defined(TARGET_CRIS) \
     || defined(TARGET_UNICORE32) || defined(TARGET_S390X) \
-    || defined(TARGET_OPENRISC) || defined(TARGET_TILEGX)
+    || defined(TARGET_OPENRISC) || defined(TARGET_TILEGX) \
+    || defined(TARGET_XTENSA)
 
 #define TARGET_IOC_SIZEBITS	14
 #define TARGET_IOC_DIRBITS	2
@@ -1204,7 +1205,8 @@ struct target_winsize {
 
 #if (defined(TARGET_I386) && defined(TARGET_ABI32)) \
     || (defined(TARGET_ARM) && defined(TARGET_ABI32)) \
-    || defined(TARGET_CRIS) || defined(TARGET_UNICORE32)
+    || defined(TARGET_CRIS) || defined(TARGET_UNICORE32) \
+    || defined(TARGET_XTENSA)
 struct target_stat {
 	unsigned short st_dev;
 	unsigned short __pad1;
