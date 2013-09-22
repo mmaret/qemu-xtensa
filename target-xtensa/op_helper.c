@@ -166,39 +166,6 @@ uint32_t HELPER(nsau)(uint32_t v)
     return v ? clz32(v) : 32;
 }
 
-static void copy_window_from_phys(CPUXtensaState *env,
-        uint32_t window, uint32_t phys, uint32_t n)
-{
-    assert(phys < env->config->nareg);
-    if (phys + n <= env->config->nareg) {
-        memcpy(env->regs + window, env->phys_regs + phys,
-                n * sizeof(uint32_t));
-    } else {
-        uint32_t n1 = env->config->nareg - phys;
-        memcpy(env->regs + window, env->phys_regs + phys,
-                n1 * sizeof(uint32_t));
-        memcpy(env->regs + window + n1, env->phys_regs,
-                (n - n1) * sizeof(uint32_t));
-    }
-}
-
-static void copy_phys_from_window(CPUXtensaState *env,
-        uint32_t phys, uint32_t window, uint32_t n)
-{
-    assert(phys < env->config->nareg);
-    if (phys + n <= env->config->nareg) {
-        memcpy(env->phys_regs + phys, env->regs + window,
-                n * sizeof(uint32_t));
-    } else {
-        uint32_t n1 = env->config->nareg - phys;
-        memcpy(env->phys_regs + phys, env->regs + window,
-                n1 * sizeof(uint32_t));
-        memcpy(env->phys_regs, env->regs + window + n1,
-                (n - n1) * sizeof(uint32_t));
-    }
-}
-
-
 static inline unsigned windowbase_bound(unsigned a, const CPUXtensaState *env)
 {
     return a & (env->config->nareg / 4 - 1);
@@ -211,18 +178,27 @@ static inline unsigned windowstart_bit(unsigned a, const CPUXtensaState *env)
 
 void xtensa_sync_window_from_phys(CPUXtensaState *env)
 {
-    copy_window_from_phys(env, 0, env->sregs[WINDOW_BASE] * 4, 16);
+    if (env->sregs[WINDOW_BASE] * 4 + 16 > env->config->nareg) {
+        memcpy(env->phys_regs + env->config->nareg, env->phys_regs,
+                (env->sregs[WINDOW_BASE] * 4 + 16 - env->config->nareg) *
+                sizeof(uint32_t));
+    }
 }
 
 void xtensa_sync_phys_from_window(CPUXtensaState *env)
 {
-    copy_phys_from_window(env, env->sregs[WINDOW_BASE] * 4, 0, 16);
+    if (env->sregs[WINDOW_BASE] * 4 + 16 > env->config->nareg) {
+        memcpy(env->phys_regs, env->phys_regs + env->config->nareg,
+                (env->sregs[WINDOW_BASE] * 4 + 16 - env->config->nareg) *
+                sizeof(uint32_t));
+    }
 }
 
-static void rotate_window_abs(CPUXtensaState *env, uint32_t position)
+void rotate_window_abs(CPUXtensaState *env, uint32_t position)
 {
     xtensa_sync_phys_from_window(env);
     env->sregs[WINDOW_BASE] = windowbase_bound(position, env);
+    env->regs = env->phys_regs + env->sregs[WINDOW_BASE] * 4;
     xtensa_sync_window_from_phys(env);
 }
 

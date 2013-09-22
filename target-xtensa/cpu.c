@@ -59,6 +59,7 @@ static void xtensa_cpu_reset(CPUState *s)
     env->sregs[CACHEATTR] = 0x22222222;
     env->sregs[ATOMCTL] = xtensa_option_enabled(env->config,
             XTENSA_OPTION_ATOMCTL) ? 0x28 : 0x15;
+    rotate_window_abs(env, env->sregs[WINDOW_BASE]);
 
     env->pending_irq_level = 0;
     reset_mmu(env);

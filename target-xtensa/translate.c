@@ -70,6 +70,7 @@ typedef struct DisasContext {
 } DisasContext;
 
 static TCGv_ptr cpu_env;
+static TCGv_ptr cpu_regs;
 static TCGv_i32 cpu_pc;
 static TCGv_i32 cpu_R[16];
 static TCGv_i32 cpu_FR[16];
@@ -208,12 +209,14 @@ void xtensa_translate_init(void)
     int i;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
+    cpu_regs = tcg_global_mem_new_ptr(cpu_env,
+            offsetof(CPUXtensaState, regs), "regs");
     cpu_pc = tcg_global_mem_new_i32(cpu_env,
             offsetof(CPUXtensaState, pc), "pc");
 
     for (i = 0; i < 16; i++) {
-        cpu_R[i] = tcg_global_mem_new_i32(cpu_env,
-                offsetof(CPUXtensaState, regs[i]),
+        cpu_R[i] = tcg_global_mem_new_i32(cpu_regs,
+                i * sizeof(uint32_t),
                 regnames[i]);
     }
 

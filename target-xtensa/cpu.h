@@ -334,11 +334,11 @@ typedef struct XtensaConfigList {
 
 typedef struct CPUXtensaState {
     const XtensaConfig *config;
-    uint32_t regs[16];
+    uint32_t *regs;
     uint32_t pc;
     uint32_t sregs[256];
     uint32_t uregs[256];
-    uint32_t phys_regs[MAX_NAREG];
+    uint32_t phys_regs[MAX_NAREG + 12];
     float32 fregs[16];
     float_status fp_status;
 
@@ -396,6 +396,7 @@ void xtensa_timer_irq(CPUXtensaState *env, uint32_t id, uint32_t active);
 void xtensa_rearm_ccompare_timer(CPUXtensaState *env);
 int cpu_xtensa_signal_handler(int host_signum, void *pinfo, void *puc);
 void xtensa_cpu_list(FILE *f, fprintf_function cpu_fprintf);
+void rotate_window_abs(CPUXtensaState *env, uint32_t position);
 void xtensa_sync_window_from_phys(CPUXtensaState *env);
 void xtensa_sync_phys_from_window(CPUXtensaState *env);
 uint32_t xtensa_tlb_get_addr_mask(const CPUXtensaState *env, bool dtlb, uint32_t way);
