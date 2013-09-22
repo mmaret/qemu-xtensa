@@ -419,7 +419,8 @@ uint32_t HELPER(query_ccount)(CPUXtensaState *env)
 
 void HELPER(set_ccount)(CPUXtensaState *env, uint32_t v)
 {
-    env->ccount_offset += v - HELPER(query_ccount)(env);
+    //env->ccount_offset += v - HELPER(query_ccount)(env);
+    //fprintf(stderr, "%s: %08x/%08x\n", __func__, v, HELPER(query_ccount)(env));
 }
 
 void HELPER(update_ccompare)(CPUXtensaState *env, uint32_t i)

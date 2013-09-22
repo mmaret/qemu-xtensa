@@ -309,7 +309,7 @@ static QEMUMachine xtensa_lx60_machine = {
     .name = "lx60",
     .desc = "lx60 EVB (" XTENSA_DEFAULT_CPU_MODEL ")",
     .init = xtensa_lx60_init,
-    .max_cpus = 4,
+    .max_cpus = 16,
     DEFAULT_MACHINE_OPTIONS,
 };
 
@@ -317,7 +317,7 @@ static QEMUMachine xtensa_lx200_machine = {
     .name = "lx200",
     .desc = "lx200 EVB (" XTENSA_DEFAULT_CPU_MODEL ")",
     .init = xtensa_lx200_init,
-    .max_cpus = 4,
+    .max_cpus = 16,
     DEFAULT_MACHINE_OPTIONS,
 };
 
