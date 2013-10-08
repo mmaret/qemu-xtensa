@@ -18,6 +18,7 @@ DEF_HELPER_2(wsr_lbeg, void, env, i32)
 DEF_HELPER_2(wsr_lend, void, env, i32)
 DEF_HELPER_1(simcall, void, env)
 DEF_HELPER_1(dump_state, void, env)
+DEF_HELPER_2(trace, void, env, i32)
 
 DEF_HELPER_3(waiti, void, env, i32, i32)
 DEF_HELPER_1(query_ccount, i32, env)

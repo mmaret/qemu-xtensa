@@ -54,6 +54,8 @@ static void xtensa_cpu_reset(CPUState *s)
             XTENSA_OPTION_ATOMCTL) ? 0x28 : 0x15;
 
     env->pending_irq_level = 0;
+    memset(env->trace_buf, 0, sizeof(env->trace_buf));
+    env->trace_idx = ~0;
     reset_mmu(env);
 }
 

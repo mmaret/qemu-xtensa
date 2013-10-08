@@ -390,6 +390,11 @@ typedef struct CPUXtensaState {
 
     int exception_taken;
     unsigned static_vectors;
+    uint32_t trace_idx;
+    struct {
+        uint32_t type_count;
+        uint32_t addr;
+    } trace_buf[16 * 1024 * 1024];
 
     /* Watchpoints for DBREAK registers */
     CPUWatchpoint *cpu_watchpoint[MAX_NDBREAK];
@@ -476,6 +481,44 @@ static inline void *xtensa_get_extint(XtensaIRQController *irqc,
         unsigned extint)
 {
     return irqc->get_irq(irqc->opaque, extint);
+}
+
+enum {
+    XTENSA_TRACE_PC,
+    XTENSA_TRACE_RASID,
+    XTENSA_TRACE_TLB_IDX,
+    XTENSA_TRACE_TLB_VPN,
+    XTENSA_TRACE_TLB_PTE,
+    XTENSA_TRACE_TLB_INV_VPN,
+    XTENSA_TRACE_EXCEPTION,
+    XTENSA_TRACE_PS,
+    XTENSA_TRACE_EXCCAUSE,
+    XTENSA_TRACE_EPC,
+    XTENSA_TRACE_EXCVADDR,
+    XTENSA_TRACE_REG_BASE,
+    XTENSA_TRACE_REG_LAST = XTENSA_TRACE_REG_BASE + 15,
+};
+static inline void xtensa_trace(CPUXtensaState *env, uint32_t type, uint32_t addr)
+{
+    if (env->trace_idx != ~0) {
+        if (env->trace_buf[env->trace_idx].addr == addr &&
+            (env->trace_buf[env->trace_idx].type_count >> 24) == type &&
+            (env->trace_buf[env->trace_idx].type_count & 0xffffff) < 0xffffff) {
+            ++env->trace_buf[env->trace_idx].type_count;
+            return;
+        }
+    }
+    env->trace_idx = (env->trace_idx + 1) & (ARRAY_SIZE(env->trace_buf) - 1);
+    env->trace_buf[env->trace_idx].type_count = (type << 24) | 1;
+    env->trace_buf[env->trace_idx].addr = addr;
+}
+
+static inline void xtensa_trace_registers(CPUXtensaState *env)
+{
+    unsigned i;
+    for (i = 0; i < 16; ++i) {
+        xtensa_trace(env, XTENSA_TRACE_REG_BASE + i, env->regs[i]);
+    }
 }
 
 #define XTENSA_OPTION_BIT(opt) (((uint64_t)1) << (opt))
