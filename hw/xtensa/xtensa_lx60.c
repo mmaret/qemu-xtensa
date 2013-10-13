@@ -69,7 +69,7 @@ static uint64_t lx60_fpga_read(void *opaque, hwaddr addr,
         return 0x09272011;
 
     case 0x4: /*processor clock frequency, Hz*/
-        return 10000000;
+        return 50000000;
 
     case 0x8: /*LEDs (off = 0, on = 1)*/
         return s->leds;
