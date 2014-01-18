@@ -2223,6 +2223,10 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
             }
             break;
 
+        case 14: /*GPIO32*/
+            gen_check_cpenable(dc, 7);
+            break;
+
         default: /*reserved*/
             RESERVED();
             break;
