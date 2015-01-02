@@ -1052,6 +1052,7 @@ void xtensa_stall(CPUXtensaState *env, bool stall)
 
     env->stall = stall;
     if (stall) {
+        cpu->halted = 1;
         cpu_interrupt(cpu, CPU_INTERRUPT_HALT);
     } else {
         cpu_reset_interrupt(cpu, CPU_INTERRUPT_HALT);
