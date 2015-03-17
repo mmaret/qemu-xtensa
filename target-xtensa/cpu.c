@@ -70,6 +70,8 @@ static void xtensa_cpu_reset(CPUState *s)
     env->sregs[CONFIGID1] = env->config->configid[1];
 
     env->pending_irq_level = 0;
+    memset(env->trace_buf, 0, sizeof(env->trace_buf));
+    env->trace_idx = ~0;
     reset_mmu(env);
 }
 

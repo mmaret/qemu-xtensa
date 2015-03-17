@@ -3030,6 +3030,13 @@ static void gen_ibreak_check(CPUXtensaState *env, DisasContext *dc)
     }
 }
 
+static void gen_trace(const DisasContext *dc)
+{
+    TCGv_i32 pc = tcg_const_i32(dc->pc);
+    gen_helper_trace(cpu_env, pc);
+    tcg_temp_free(pc);
+}
+
 void gen_intermediate_code(CPUXtensaState *env, TranslationBlock *tb)
 {
     XtensaCPU *cpu = xtensa_env_get_cpu(env);
@@ -3072,6 +3079,7 @@ void gen_intermediate_code(CPUXtensaState *env, TranslationBlock *tb)
     }
 
     gen_tb_start(tb);
+    gen_trace(&dc);
 
     if (tb->flags & XTENSA_TBFLAG_EXCEPTION) {
         tcg_gen_movi_i32(cpu_pc, dc.pc);
@@ -3163,7 +3171,7 @@ void xtensa_cpu_dump_state(CPUState *cs, FILE *f,
 {
     XtensaCPU *cpu = XTENSA_CPU(cs);
     CPUXtensaState *env = &cpu->env;
-    int i, j;
+    unsigned i, j;
 
     cpu_fprintf(f, "PC=%08x\n\n", env->pc);
 
@@ -3205,6 +3213,38 @@ void xtensa_cpu_dump_state(CPUState *cs, FILE *f,
                     float32_val(env->fregs[i].f32[FP_F32_LOW]),
                     *(float *)(env->fregs[i].f32 + FP_F32_LOW),
                     (i % 2) == 1 ? '\n' : ' ');
+        }
+    }
+
+    cpu_fprintf(f, "\nBacktrace\n\n");
+
+    for (i = 0; i < ARRAY_SIZE(env->trace_buf); ++i) {
+        static const char * const trace_str[] = {
+            "   pc",
+            "rasid",
+            "TLBid",
+            "  VPN",
+            "  PTE",
+            "inVPN",
+            "  exc",
+            "   ps",
+            " excc",
+            "  epc",
+            " excv",
+            "   a0", "   a1", "   a2", "   a3",
+            "   a4", "   a5", "   a6", "   a7",
+            "   a8", "   a9", "  a10", "  a11",
+            "  a12", "  a13", "  a14", "  a15",
+        };
+        j = (env->trace_idx - i) & (ARRAY_SIZE(env->trace_buf) - 1);
+        if ((env->trace_buf[j].type_count & 0xffffff) == 0) {
+            break;
+        }
+        cpu_fprintf(f, (env->trace_buf[j].type_count & 0xffffff) > 1 ? "%s: 0x%08x *%9d " : "%s: 0x%08x ",
+                trace_str[env->trace_buf[j].type_count >> 24],
+                env->trace_buf[j].addr, env->trace_buf[j].type_count & 0xffffff);
+        if ((i & 0x7) == 0x7) {
+            cpu_fprintf(f, "\n");
         }
     }
 }
