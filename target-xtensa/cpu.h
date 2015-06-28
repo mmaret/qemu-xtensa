@@ -422,6 +422,7 @@ void xtensa_finalize_config(XtensaConfig *config);
 void xtensa_register_core(XtensaConfigList *node);
 void check_interrupts(CPUXtensaState *s);
 void xtensa_irq_init(CPUXtensaState *env);
+void xtensa_pmu_init(CPUXtensaState *env);
 void *xtensa_get_extint(CPUXtensaState *env, unsigned extint);
 void xtensa_advance_ccount(CPUXtensaState *env, uint32_t d);
 void xtensa_timer_irq(CPUXtensaState *env, uint32_t id, uint32_t active);

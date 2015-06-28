@@ -127,6 +127,7 @@ XtensaCPU *cpu_xtensa_init(const char *cpu_model)
     env = &cpu->env;
 
     xtensa_irq_init(env);
+    xtensa_pmu_init(env);
 
     object_property_set_bool(OBJECT(cpu), true, "realized", NULL);
 
