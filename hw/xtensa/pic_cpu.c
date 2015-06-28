@@ -94,7 +94,8 @@ static void xtensa_set_irq(void *opaque, int irq, int active)
 
         if (active) {
             env->sregs[INTSET] |= irq_bit;
-        } else if (env->config->interrupt[irq].inttype == INTTYPE_LEVEL) {
+        } else if (env->config->interrupt[irq].inttype == INTTYPE_LEVEL ||
+                   env->config->interrupt[irq].inttype == INTTYPE_PROFILING) {
             env->sregs[INTSET] &= ~irq_bit;
         }
 
