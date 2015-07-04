@@ -449,6 +449,7 @@ enum {
     XTENSA_TRACE_EXCVADDR,
     XTENSA_TRACE_REG_BASE,
     XTENSA_TRACE_REG_LAST = XTENSA_TRACE_REG_BASE + 15,
+    XTENSA_TRACE_THREADPTR,
 };
 static inline void xtensa_trace(CPUXtensaState *env, uint32_t type, uint32_t addr)
 {

@@ -395,6 +395,11 @@ void HELPER(trace)(CPUXtensaState *env, uint32_t pc)
     xtensa_trace(env, XTENSA_TRACE_PC, pc);
 }
 
+void HELPER(trace_threadptr)(CPUXtensaState *env, uint32_t threadptr)
+{
+    xtensa_trace(env, XTENSA_TRACE_THREADPTR, threadptr);
+}
+
 void HELPER(waiti)(CPUXtensaState *env, uint32_t pc, uint32_t intlevel)
 {
     CPUState *cpu;

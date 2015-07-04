@@ -796,6 +796,11 @@ static void gen_wur(uint32_t ur, TCGv_i32 s)
         tcg_gen_andi_i32(cpu_UR[ur], s, 0xffffff80);
         break;
 
+    case THREADPTR:
+        gen_helper_trace_threadptr(cpu_env, s);
+        tcg_gen_mov_i32(cpu_UR[ur], s);
+        break;
+
     default:
         tcg_gen_mov_i32(cpu_UR[ur], s);
         break;
@@ -3235,6 +3240,7 @@ void xtensa_cpu_dump_state(CPUState *cs, FILE *f,
             "   a4", "   a5", "   a6", "   a7",
             "   a8", "   a9", "  a10", "  a11",
             "  a12", "  a13", "  a14", "  a15",
+            " thrd",
         };
         j = (env->trace_idx - i) & (ARRAY_SIZE(env->trace_buf) - 1);
         if ((env->trace_buf[j].type_count & 0xffffff) == 0) {
