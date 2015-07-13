@@ -2342,6 +2342,64 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
             }
             break;
 
+        case 14: /*DFP1f*/
+            HAS_OPTION(XTENSA_OPTION_DFP_COPROCESSOR);
+
+#define gen_compare(rel, br, a, b) \
+    do { \
+        if (gen_check_cpenable(dc, 0)) { \
+            TCGv_i32 bit = tcg_const_i32(1 << br); \
+            \
+            gen_helper_##rel(cpu_env, bit, cpu_FRD[a], cpu_FRD[b]); \
+            tcg_temp_free(bit); \
+        } \
+    } while (0)
+
+            switch (OP2) {
+            case 1: /*UN.Df*/
+                gen_compare(un_d, RRR_R, RRR_S, RRR_T);
+                break;
+
+            case 2: /*OEQ.Df*/
+                gen_compare(oeq_d, RRR_R, RRR_S, RRR_T);
+                break;
+
+            case 3: /*UEQ.Df*/
+                gen_compare(ueq_d, RRR_R, RRR_S, RRR_T);
+                break;
+
+            case 4: /*OLT.Df*/
+                gen_compare(olt_d, RRR_R, RRR_S, RRR_T);
+                break;
+
+            case 5: /*ULT.Df*/
+                gen_compare(ult_d, RRR_R, RRR_S, RRR_T);
+                break;
+
+            case 6: /*OLE.Df*/
+                gen_compare(ole_d, RRR_R, RRR_S, RRR_T);
+                break;
+
+            case 7: /*ULE.Df*/
+                gen_compare(ule_d, RRR_R, RRR_S, RRR_T);
+                break;
+
+#undef gen_compare
+
+            case 8: /*WFRDf*/
+                if (gen_window_check2(dc, RRR_S, RRR_T) &&
+                    gen_check_cpenable(dc, 0)) {
+                    tcg_gen_concat_i32_i64(cpu_FRD[RRR_R], cpu_R[RRR_T],
+                                           cpu_R[RRR_S]);
+                }
+                break;
+
+            default: /*reserved*/
+                RESERVED();
+                break;
+            }
+            break;
+
         case 15: /*DFP0f*/
             HAS_OPTION(XTENSA_OPTION_DFP_COPROCESSOR);
             switch (OP2) {

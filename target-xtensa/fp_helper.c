@@ -241,3 +241,41 @@ float64 HELPER(uitof_d)(CPUXtensaState *env, uint32_t v, uint32_t scale)
     return float64_scalbn(uint32_to_float64(v, &env->fp_status),
             (int32_t)scale, &env->fp_status);
 }
+
+void HELPER(un_d)(CPUXtensaState *env, uint32_t br, float64 a, float64 b)
+{
+    set_br(env, float64_unordered_quiet(a, b, &env->fp_status), br);
+}
+
+void HELPER(oeq_d)(CPUXtensaState *env, uint32_t br, float64 a, float64 b)
+{
+    set_br(env, float64_eq_quiet(a, b, &env->fp_status), br);
+}
+
+void HELPER(ueq_d)(CPUXtensaState *env, uint32_t br, float64 a, float64 b)
+{
+    int v = float64_compare_quiet(a, b, &env->fp_status);
+    set_br(env, v == float_relation_equal || v == float_relation_unordered, br);
+}
+
+void HELPER(olt_d)(CPUXtensaState *env, uint32_t br, float64 a, float64 b)
+{
+    set_br(env, float64_lt_quiet(a, b, &env->fp_status), br);
+}
+
+void HELPER(ult_d)(CPUXtensaState *env, uint32_t br, float64 a, float64 b)
+{
+    int v = float64_compare_quiet(a, b, &env->fp_status);
+    set_br(env, v == float_relation_less || v == float_relation_unordered, br);
+}
+
+void HELPER(ole_d)(CPUXtensaState *env, uint32_t br, float64 a, float64 b)
+{
+    set_br(env, float64_le_quiet(a, b, &env->fp_status), br);
+}
+
+void HELPER(ule_d)(CPUXtensaState *env, uint32_t br, float64 a, float64 b)
+{
+    int v = float64_compare_quiet(a, b, &env->fp_status);
+    set_br(env, v != float_relation_greater, br);
+}
