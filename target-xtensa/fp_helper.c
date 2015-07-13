@@ -166,3 +166,78 @@ void HELPER(ule_s)(CPUXtensaState *env, uint32_t br, float32 a, float32 b)
     int v = float32_compare_quiet(a, b, &env->fp_status);
     set_br(env, v != float_relation_greater, br);
 }
+
+
+float64 HELPER(abs_d)(float64 v)
+{
+    return float64_abs(v);
+}
+
+float64 HELPER(neg_d)(float64 v)
+{
+    return float64_chs(v);
+}
+
+float64 HELPER(add_d)(CPUXtensaState *env, float64 a, float64 b)
+{
+    return float64_add(a, b, &env->fp_status);
+}
+
+float64 HELPER(sub_d)(CPUXtensaState *env, float64 a, float64 b)
+{
+    return float64_sub(a, b, &env->fp_status);
+}
+
+float64 HELPER(mul_d)(CPUXtensaState *env, float64 a, float64 b)
+{
+    return float64_mul(a, b, &env->fp_status);
+}
+
+float64 HELPER(madd_d)(CPUXtensaState *env, float64 a, float64 b, float64 c)
+{
+    return float64_muladd(b, c, a, 0,
+            &env->fp_status);
+}
+
+float64 HELPER(msub_d)(CPUXtensaState *env, float64 a, float64 b, float64 c)
+{
+    return float64_muladd(b, c, a, float_muladd_negate_product,
+            &env->fp_status);
+}
+
+uint32_t HELPER(ftoi_d)(float64 v, uint32_t rounding_mode, uint32_t scale)
+{
+    float_status fp_status = {0};
+
+    set_float_rounding_mode(rounding_mode, &fp_status);
+    return float64_to_int32(
+            float64_scalbn(v, scale, &fp_status), &fp_status);
+}
+
+uint32_t HELPER(ftoui_d)(float64 v, uint32_t rounding_mode, uint32_t scale)
+{
+    float_status fp_status = {0};
+    float64 res;
+
+    set_float_rounding_mode(rounding_mode, &fp_status);
+
+    res = float64_scalbn(v, scale, &fp_status);
+
+    if (float64_is_neg(v) && !float64_is_any_nan(v)) {
+        return float64_to_int32(res, &fp_status);
+    } else {
+        return float64_to_uint32(res, &fp_status);
+    }
+}
+
+float64 HELPER(itof_d)(CPUXtensaState *env, uint32_t v, uint32_t scale)
+{
+    return float64_scalbn(int32_to_float64(v, &env->fp_status),
+            (int32_t)scale, &env->fp_status);
+}
+
+float64 HELPER(uitof_d)(CPUXtensaState *env, uint32_t v, uint32_t scale)
+{
+    return float64_scalbn(uint32_to_float64(v, &env->fp_status),
+            (int32_t)scale, &env->fp_status);
+}

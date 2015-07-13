@@ -2342,6 +2342,137 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
             }
             break;
 
+        case 15: /*DFP0f*/
+            HAS_OPTION(XTENSA_OPTION_DFP_COPROCESSOR);
+            switch (OP2) {
+            case 0: /*ADD.Df*/
+                if (gen_check_cpenable(dc, 0)) {
+                    gen_helper_add_d(cpu_FRD[RRR_R], cpu_env,
+                                     cpu_FRD[RRR_S], cpu_FRD[RRR_T]);
+                }
+                break;
+
+            case 1: /*SUB.Df*/
+                if (gen_check_cpenable(dc, 0)) {
+                    gen_helper_sub_d(cpu_FRD[RRR_R], cpu_env,
+                                     cpu_FRD[RRR_S], cpu_FRD[RRR_T]);
+                }
+                break;
+
+            case 2: /*MUL.Df*/
+                if (gen_check_cpenable(dc, 0)) {
+                    gen_helper_mul_d(cpu_FRD[RRR_R], cpu_env,
+                                     cpu_FRD[RRR_S], cpu_FRD[RRR_T]);
+                }
+                break;
+
+            case 4: /*MADD.Df*/
+                if (gen_check_cpenable(dc, 0)) {
+                    gen_helper_madd_d(cpu_FRD[RRR_R], cpu_env,
+                                      cpu_FRD[RRR_R], cpu_FRD[RRR_S],
+                                      cpu_FRD[RRR_T]);
+                }
+                break;
+
+            case 5: /*MSUB.Df*/
+                if (gen_check_cpenable(dc, 0)) {
+                    gen_helper_msub_d(cpu_FRD[RRR_R], cpu_env,
+                                      cpu_FRD[RRR_R], cpu_FRD[RRR_S],
+                                      cpu_FRD[RRR_T]);
+                }
+                break;
+
+            case 8: /*ROUND.Df*/
+            case 9: /*TRUNC.Df*/
+            case 10: /*FLOOR.Df*/
+            case 11: /*CEIL.Df*/
+            case 14: /*UTRUNC.Df*/
+                if (gen_window_check1(dc, RRR_R) &&
+                    gen_check_cpenable(dc, 0)) {
+                    static const unsigned rounding_mode_const[] = {
+                        float_round_nearest_even,
+                        float_round_to_zero,
+                        float_round_down,
+                        float_round_up,
+                        [6] = float_round_to_zero,
+                    };
+                    TCGv_i32 rounding_mode = tcg_const_i32(
+                            rounding_mode_const[OP2 & 7]);
+                    TCGv_i32 scale = tcg_const_i32(RRR_T);
+
+                    if (OP2 == 14) {
+                        gen_helper_ftoui_d(cpu_R[RRR_R], cpu_FRD[RRR_S],
+                                rounding_mode, scale);
+                    } else {
+                        gen_helper_ftoi_d(cpu_R[RRR_R], cpu_FRD[RRR_S],
+                                rounding_mode, scale);
+                    }
+
+                    tcg_temp_free(rounding_mode);
+                    tcg_temp_free(scale);
+                }
+                break;
+
+            case 12: /*FLOAT.Df*/
+            case 13: /*UFLOAT.Df*/
+                if (gen_window_check1(dc, RRR_S) &&
+                    gen_check_cpenable(dc, 0)) {
+                    TCGv_i32 scale = tcg_const_i32(-RRR_T);
+
+                    if (OP2 == 13) {
+                        gen_helper_uitof_d(cpu_FRD[RRR_R], cpu_env,
+                                cpu_R[RRR_S], scale);
+                    } else {
+                        gen_helper_itof_d(cpu_FRD[RRR_R], cpu_env,
+                                cpu_R[RRR_S], scale);
+                    }
+                    tcg_temp_free(scale);
+                }
+                break;
+
+            case 15: /*DFP1OP*/
+                switch (RRR_T) {
+                case 0: /*MOV.Df*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        tcg_gen_mov_i64(cpu_FRD[RRR_R], cpu_FRD[RRR_S]);
+                    }
+                    break;
+
+                case 1: /*ABS.Df*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        gen_helper_abs_d(cpu_FRD[RRR_R], cpu_FRD[RRR_S]);
+                    }
+                    break;
+
+                case 4: /*RFRDf*/
+                    if (gen_window_check1(dc, RRR_R) &&
+                        gen_check_cpenable(dc, 0)) {
+                        TCGv_i64 tmp = tcg_temp_new_i64();
+
+                        tcg_gen_shri_i64(tmp, cpu_FRD[RRR_S], 32);
+                        tcg_gen_trunc_i64_i32(cpu_R[RRR_R], tmp);
+                        tcg_temp_free_i64(tmp);
+                    }
+                    break;
+
+                case 6: /*NEG.Df*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        gen_helper_neg_d(cpu_FRD[RRR_R], cpu_FRD[RRR_S]);
+                    }
+                    break;
+
+                default: /*reserved*/
+                    RESERVED();
+                    break;
+                }
+                break;
+
+            default: /*reserved*/
+                RESERVED();
+                break;
+            }
+            break;
+
         default: /*reserved*/
             RESERVED();
             break;
