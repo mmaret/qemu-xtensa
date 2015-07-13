@@ -2051,10 +2051,10 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                     TCGv_i32 scale = tcg_const_i32(RRR_T);
 
                     if (OP2 == 14) {
-                        gen_helper_ftoui(cpu_R[RRR_R], cpu_FR[RRR_S],
+                        gen_helper_ftoui_s(cpu_R[RRR_R], cpu_FR[RRR_S],
                                 rounding_mode, scale);
                     } else {
-                        gen_helper_ftoi(cpu_R[RRR_R], cpu_FR[RRR_S],
+                        gen_helper_ftoi_s(cpu_R[RRR_R], cpu_FR[RRR_S],
                                 rounding_mode, scale);
                     }
 
@@ -2070,10 +2070,10 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                     TCGv_i32 scale = tcg_const_i32(-RRR_T);
 
                     if (OP2 == 13) {
-                        gen_helper_uitof(cpu_FR[RRR_R], cpu_env,
+                        gen_helper_uitof_s(cpu_FR[RRR_R], cpu_env,
                                 cpu_R[RRR_S], scale);
                     } else {
-                        gen_helper_itof(cpu_FR[RRR_R], cpu_env,
+                        gen_helper_itof_s(cpu_FR[RRR_R], cpu_env,
                                 cpu_R[RRR_S], scale);
                     }
                     tcg_temp_free(scale);
