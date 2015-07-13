@@ -77,6 +77,7 @@ static TCGv_ptr cpu_env;
 static TCGv_i32 cpu_pc;
 static TCGv_i32 cpu_R[16];
 static TCGv_i32 cpu_FR[16];
+static TCGv_i64 cpu_FRD[16];
 static TCGv_i32 cpu_SR[256];
 static TCGv_i32 cpu_UR[256];
 
@@ -229,6 +230,12 @@ void xtensa_translate_init(void)
     for (i = 0; i < 16; i++) {
         cpu_FR[i] = tcg_global_mem_new_i32(TCG_AREG0,
                 offsetof(CPUXtensaState, fregs[i].f32[FP_F32_LOW]),
+                fregnames[i]);
+    }
+
+    for (i = 0; i < 16; i++) {
+        cpu_FRD[i] = tcg_global_mem_new_i64(TCG_AREG0,
+                offsetof(CPUXtensaState, fregs[i].f64),
                 fregnames[i]);
     }
 
@@ -3204,6 +3211,17 @@ void xtensa_cpu_dump_state(CPUState *cs, FILE *f,
             cpu_fprintf(f, "F%02d=%08x (%+10.8e)%c", i,
                     float32_val(env->fregs[i].f32[FP_F32_LOW]),
                     *(float *)(env->fregs[i].f32 + FP_F32_LOW),
+                    (i % 2) == 1 ? '\n' : ' ');
+        }
+    }
+
+    if (xtensa_option_enabled(env->config, XTENSA_OPTION_DFP_COPROCESSOR)) {
+        cpu_fprintf(f, "\n");
+
+        for (i = 0; i < 16; ++i) {
+            cpu_fprintf(f, "F%02d=%016"PRIx64" (%+20.16le)%c", i,
+                    float64_val(env->fregs[i].f64),
+                    *(double *)(&env->fregs[i].f64),
                     (i % 2) == 1 ? '\n' : ' ');
         }
     }
