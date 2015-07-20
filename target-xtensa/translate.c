@@ -2106,6 +2106,25 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                 }
                 break;
 
+            case 6: /*MADDN.Sf*/
+                if (gen_check_cpenable(dc, 0)) {
+                    TCGv_i32 r = tcg_temp_new_i32();
+                    TCGv_i32 s = tcg_temp_new_i32();
+                    TCGv_i32 t = tcg_temp_new_i32();
+
+                    gen_mov_from_fr_32(dc, r, RRR_R);
+                    gen_mov_from_fr_32(dc, s, RRR_S);
+                    gen_mov_from_fr_32(dc, t, RRR_T);
+
+                    gen_helper_maddn_s(r, r, s, t);
+
+                    gen_mov_to_fr_32(dc, RRR_R, r);
+                    tcg_temp_free(r);
+                    tcg_temp_free(s);
+                    tcg_temp_free(t);
+                }
+                break;
+
             case 8: /*ROUND.Sf*/
             case 9: /*TRUNC.Sf*/
             case 10: /*FLOOR.Sf*/
@@ -2191,6 +2210,24 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                     }
                     break;
 
+                case 3: /*CONST.Sf*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        static const uint32_t v[] = {
+                            0x00000000,
+                            0x3f800000,
+                            0x40000000,
+                            0x3f000000,
+                        };
+
+                        if (RRR_S < ARRAY_SIZE(v)) {
+                            TCGv_i32 tmp = tcg_const_i32(v[RRR_S]);
+
+                            gen_mov_to_fr_32(dc, RRR_R, tmp);
+                            tcg_temp_free(tmp);
+                        }
+                    }
+                    break;
+
                 case 4: /*RFRf*/
                     if (gen_window_check1(dc, RRR_R) &&
                         gen_check_cpenable(dc, 0)) {
@@ -2208,6 +2245,60 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                 case 6: /*NEG.Sf*/
                     if (gen_check_cpenable(dc, 0)) {
                         gen_fp_op1(neg, RRR_R, RRR_S);
+                    }
+                    break;
+
+                case 7: /*DIV0.Sf*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        gen_fp_op1(div0, RRR_R, RRR_S);
+                    }
+                    break;
+
+                case 11: /*NEXP01.Sf*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        gen_fp_op1(nexp01, RRR_R, RRR_S);
+                    }
+                    break;
+
+                case 12: /*MKSADJ.Sf*/
+                case 13: /*MKDADJ.Sf*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        TCGv_i32 r = tcg_temp_new_i32();
+                        TCGv_i32 s = tcg_temp_new_i32();
+
+                        gen_mov_from_fr_32(dc, r, RRR_R);
+                        gen_mov_from_fr_32(dc, s, RRR_S);
+                        gen_helper_mkdadj_s(r, cpu_env, r, s);
+                        gen_mov_to_fr_32(dc, RRR_R, r);
+                        tcg_temp_free(r);
+                        tcg_temp_free(s);
+                    }
+                    break;
+
+                case 14: /*ADDEXP.Sf*/
+                case 15: /*ADDEXPM.Sf*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        TCGv_i32 s0 = tcg_temp_new_i32();
+                        TCGv_i32 s = tcg_temp_new_i32();
+                        TCGv_i32 e = tcg_temp_new_i32();
+
+                        if (RRR_T == 14) {
+                            tcg_gen_mov_i32(s0, cpu_FR[RRR_S]);
+                        } else {
+                            tcg_gen_shli_i32(s0, cpu_FR[RRR_S], 9);
+                        }
+                        tcg_gen_xor_i32(s, cpu_FR[RRR_R], s0);
+                        tcg_gen_andi_i32(s, s, 0x80000000);
+                        tcg_gen_add_i32(e, cpu_FR[RRR_R], s0);
+                        tcg_gen_subi_i32(e, e, 127 << 23);
+                        tcg_gen_andi_i32(e, e, 0x7f800000);
+                        tcg_gen_andi_i32(cpu_FR[RRR_R], cpu_FR[RRR_R],
+                                         0x007fffff);
+                        tcg_gen_or_i32(cpu_FR[RRR_R], cpu_FR[RRR_R], s);
+                        tcg_gen_or_i32(cpu_FR[RRR_R], cpu_FR[RRR_R], e);
+                        tcg_temp_free(s0);
+                        tcg_temp_free(s);
+                        tcg_temp_free(e);
                     }
                     break;
 

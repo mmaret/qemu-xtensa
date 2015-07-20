@@ -88,6 +88,109 @@ float32 HELPER(msub_s)(CPUXtensaState *env, float32 a, float32 b, float32 c)
             &env->fp_status);
 }
 
+float32 HELPER(maddn_s)(float32 a, float32 b, float32 c)
+{
+    float_status fp_status = {0};
+
+    set_float_rounding_mode(float_round_nearest_even, &fp_status);
+    return float32_muladd(b, c, a, 0, &fp_status);
+}
+
+static float32 nexp_base_s(float32 a)
+{
+    if (float32_is_infinity(a)) {
+        return make_float32((float32_val(a) & 0x80000000) | 0x3f800000);
+    } else if (float32_is_any_nan(a)) {
+        return make_float32((float32_val(a) & 0x807fffff) | 0x7f800000);
+    } else if (float32_is_zero(a)) {
+        return make_float32((float32_val(a) & 0x80000000) | 0x3f800000);
+    } else {
+        uint32_t s = float32_val(a) & 0x80000000;
+        uint32_t e = (float32_val(a) & 0x7f800000) >> 23;
+        uint32_t m = float32_val(a) & 0x007fffff;
+
+        if (e == 0) {
+            uint32_t d = clz32(m) - 8;
+
+            m = (m << d) & 0x007fffff;
+            e = 1 - d;
+        }
+        return make_float32(s | ((128 - (e & 0x1)) << 23) | m);
+    }
+}
+
+static const uint8_t div0[] = {
+255, 253, 251, 249, 247, 245, 244, 242, 240, 238, 237, 235, 233, 232, 230, 228,
+227, 225, 224, 222, 221, 219, 218, 216, 215, 213, 212, 211, 209, 208, 207, 205,
+204, 203, 202, 200, 199, 198, 197, 196, 194, 193, 192, 191, 190, 189, 188, 187,
+186, 185, 184, 183, 182, 181, 180, 179, 178, 177, 176, 175, 174, 173, 172, 171,
+170, 169, 168, 168, 167, 166, 165, 164, 163, 163, 162, 161, 160, 159, 159, 158,
+157, 156, 156, 155, 154, 153, 153, 152, 151, 151, 150, 149, 149, 148, 147, 147,
+146, 145, 145, 144, 143, 143, 142, 142, 141, 140, 140, 139, 139, 138, 137, 137,
+136, 136, 135, 135, 134, 133, 133, 132, 132, 131, 131, 130, 130, 129, 129, 129
+};
+
+float32 HELPER(div0_s)(float32 a)
+{
+    float32 norm = nexp_base_s(a);
+    uint32_t s = float32_val(norm) & 0x80000000;
+    uint32_t e = float32_val(norm) & 0x00800000;
+    uint32_t m = (div0[(float32_val(norm) & 0x007f0000) >> 16] & 0x7f) << 16;
+
+    return make_float32(s | (0x3e800000 + e) | m);
+}
+
+float32 HELPER(nexp01_s)(float32 a)
+{
+    return float32_chs(nexp_base_s(a));
+}
+
+#define EXP_ZIN 0xff
+
+static uint32_t mkdadj_exp(float32 a)
+{
+    if (float32_is_infinity(a) ||
+        float32_is_any_nan(a) ||
+        float32_is_zero(a)) {
+        return EXP_ZIN;
+    } else {
+        uint32_t e = (float32_val(a) & 0x7f800000) >> 23;
+        uint32_t m = float32_val(a) & 0x007fffff;
+
+        if (e == 0) {
+            e = 9 - clz32(m);
+        }
+        return (e - 127) & ~1;
+    }
+}
+
+float32 HELPER(mkdadj_s)(CPUXtensaState *env, float32 a, float32 b)
+{
+    uint32_t expa = mkdadj_exp(a);
+    uint32_t expb = mkdadj_exp(b);
+    uint32_t res;
+    uint32_t exp_hi;
+    uint32_t exp_lo;
+
+    if (expa == EXP_ZIN || expb == EXP_ZIN) {
+        bool is_inf = (float32_is_infinity(a) &&
+                       !(float32_is_infinity(b) || float32_is_any_nan(b))) ||
+            (expa != EXP_ZIN && float32_is_zero(b));
+        bool is_nan = float32_is_any_nan(a) || float32_is_any_nan(b) ||
+            (float32_is_zero(a) && float32_is_zero(b)) ||
+            (float32_is_infinity(a) && float32_is_infinity(b));
+        bool is_neg = float32_is_neg(a) ^ float32_is_neg(b);
+
+        res = 0x180 | (is_nan << 2) | (is_inf << 1) | is_neg;
+    } else {
+        res = expa - expb;
+    }
+    exp_hi = (((res & 0x3e0) >> 2) + 127) & 0xff;
+    exp_lo = (((res & 0x01f) << 3) + 127) & 0xff;
+
+    return make_float32((exp_lo << 23) | (exp_hi << 14));
+}
+
 uint32_t HELPER(ftoi_s)(float32 v, uint32_t rounding_mode, uint32_t scale)
 {
     float_status fp_status = {0};
