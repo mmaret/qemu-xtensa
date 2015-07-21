@@ -5,3 +5,4 @@ obj-y += xtensa-semi.o
 obj-y += core-dc232b.o
 obj-y += core-dc233c.o
 obj-y += core-fsf.o
+obj-y += core-fsf_2014.o
