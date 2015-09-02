@@ -1,6 +1,6 @@
 -include ../../../config-host.mak
 
-CORE=dc232b
+CORE=fsf_2014
 CROSS=xtensa-$(CORE)-elf-
 
 ifndef XT

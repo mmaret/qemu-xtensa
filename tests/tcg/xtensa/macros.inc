@@ -49,7 +49,7 @@ main:
 .endm
 
 .macro test name
-    //print test_\name
+    print test_\name
     test_init
 test_\name:
 .global test_\name
@@ -70,6 +70,7 @@ test_\name:
 .endm
 
 .macro test_fail
+    print   "fail"
     movi    a2, status
     l32i    a2, a2, 0
     movi    a3, 1

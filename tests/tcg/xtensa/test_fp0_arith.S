@@ -12,7 +12,7 @@ test_suite fp0_arith
     movi    a2, 4
     movi    a3, 1
     movi    a5, 4
-    //simcall
+    simcall
     movi    a4, 1b
     l32i    a2, a4, 0
 .endm
@@ -24,7 +24,7 @@ test_suite fp0_arith
 
 .macro check_res fr, r
     rfr     a2, \fr
-    dump    a2
+    //dump    a2
     movi    a3, \r
     assert  eq, a2, a3
     rur     a2, fsr
