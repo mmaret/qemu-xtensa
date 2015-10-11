@@ -51,6 +51,11 @@ float32 HELPER(abs_s)(float32 v)
     return float32_abs(v);
 }
 
+float64 HELPER(cvtd_s)(CPUXtensaState *env, float32 v)
+{
+    return float32_to_float64(v, &env->fp_status);
+}
+
 float32 HELPER(neg_s)(float32 v)
 {
     return float32_chs(v);
@@ -171,6 +176,11 @@ void HELPER(ule_s)(CPUXtensaState *env, uint32_t br, float32 a, float32 b)
 float64 HELPER(abs_d)(float64 v)
 {
     return float64_abs(v);
+}
+
+float32 HELPER(cvts_d)(CPUXtensaState *env, float64 v)
+{
+    return float64_to_float32(v, &env->fp_status);
 }
 
 float64 HELPER(neg_d)(float64 v)

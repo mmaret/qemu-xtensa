@@ -2177,6 +2177,20 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                     }
                     break;
 
+                case 2: /*CVTD.Sf*/
+                    HAS_OPTION(XTENSA_OPTION_DFP_COPROCESSOR);
+                    if (gen_check_cpenable(dc, 0)) {
+                        TCGv_i64 r = tcg_temp_new_i64();
+                        TCGv_i32 s = tcg_temp_new_i32();
+
+                        gen_mov_from_fr_32(dc, s, RRR_S);
+                        gen_helper_cvtd_s(r, cpu_env, s);
+                        tcg_gen_mov_i64(cpu_FRD[RRR_R], r);
+                        tcg_temp_free_i64(r);
+                        tcg_temp_free_i32(s);
+                    }
+                    break;
+
                 case 4: /*RFRf*/
                     if (gen_window_check1(dc, RRR_R) &&
                         gen_check_cpenable(dc, 0)) {
@@ -2499,6 +2513,19 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                 case 1: /*ABS.Df*/
                     if (gen_check_cpenable(dc, 0)) {
                         gen_helper_abs_d(cpu_FRD[RRR_R], cpu_FRD[RRR_S]);
+                    }
+                    break;
+
+                case 2: /*CVTS.Df*/
+                    if (gen_check_cpenable(dc, 0)) {
+                        TCGv_i32 r = tcg_temp_new_i32();
+                        TCGv_i64 s = tcg_temp_new_i64();
+
+                        tcg_gen_mov_i64(s, cpu_FRD[RRR_S]);
+                        gen_helper_cvts_d(r, cpu_env, s);
+                        gen_mov_to_fr_32(dc, RRR_R, r);
+                        tcg_temp_free_i32(r);
+                        tcg_temp_free_i64(s);
                     }
                     break;
 
