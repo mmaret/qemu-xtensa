@@ -346,4 +346,28 @@ test_end
 
 #endif
 
+#if XCHAL_HAVE_DFP
+
+test cvtd_s
+    movi    a2, 0x3f800000
+    wfr     f0, a2
+    cvtd.s  f1, f0
+    rfr     a2, f1
+    assert  eqi, a2, 0
+    rfrd    a2, f1
+    movi    a3, 0x3ff00000
+    assert  eq, a2, a3
+
+    movi    a2, 0
+    wur     a2, fsr
+    movi    a2, 0x7f800001
+    wfr     f0, a2
+    cvtd.s  f1, f0
+    rur     a2, fsr
+    movi    a3, 0x00000800
+    assert  eq, a2, a3
+test_end
+
+#endif
+
 test_suite_end
