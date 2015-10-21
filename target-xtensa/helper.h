@@ -37,6 +37,8 @@ DEF_HELPER_3(wsr_dbreaka, void, env, i32, i32)
 DEF_HELPER_3(wsr_dbreakc, void, env, i32, i32)
 
 DEF_HELPER_2(wur_fcr, void, env, i32)
+DEF_HELPER_2(wur_fsr, void, env, i32)
+DEF_HELPER_1(rur_fsr, i32, env)
 DEF_HELPER_FLAGS_1(abs_s, TCG_CALL_NO_RWG_SE, f32, f32)
 DEF_HELPER_2(cvtd_s, f64, env, f32)
 DEF_HELPER_FLAGS_1(neg_s, TCG_CALL_NO_RWG_SE, f32, f32)

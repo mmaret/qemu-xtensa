@@ -33,6 +33,30 @@
 #include "exec/cpu_ldst.h"
 #include "exec/address-spaces.h"
 
+enum {
+    XTENSA_FP_I = 0x1,
+    XTENSA_FP_U = 0x2,
+    XTENSA_FP_O = 0x4,
+    XTENSA_FP_Z = 0x8,
+    XTENSA_FP_V = 0x10,
+};
+
+enum {
+    XTENSA_FCR_FLAGS_SHIFT = 2,
+    XTENSA_FSR_FLAGS_SHIFT = 7,
+};
+
+static const struct {
+    uint32_t xtensa_fp_flag;
+    int softfloat_fp_flag;
+} xtensa_fp_flag_map[] = {
+    { XTENSA_FP_I, float_flag_inexact, },
+    { XTENSA_FP_U, float_flag_underflow, },
+    { XTENSA_FP_O, float_flag_overflow, },
+    { XTENSA_FP_Z, float_flag_divbyzero, },
+    { XTENSA_FP_V, float_flag_invalid, },
+};
+
 void HELPER(wur_fcr)(CPUXtensaState *env, uint32_t v)
 {
     static const int rounding_mode[] = {
@@ -44,6 +68,35 @@ void HELPER(wur_fcr)(CPUXtensaState *env, uint32_t v)
 
     env->uregs[FCR] = v & 0xfffff07f;
     set_float_rounding_mode(rounding_mode[v & 3], &env->fp_status);
+}
+
+void HELPER(wur_fsr)(CPUXtensaState *env, uint32_t v)
+{
+    uint32_t flags = v >> XTENSA_FSR_FLAGS_SHIFT;
+    int fef = 0;
+    unsigned i;
+
+    env->uregs[FSR] = v & 0xfffff000;
+    for (i = 0; i < ARRAY_SIZE(xtensa_fp_flag_map); ++i) {
+        if (flags & xtensa_fp_flag_map[i].xtensa_fp_flag) {
+            fef |= xtensa_fp_flag_map[i].softfloat_fp_flag;
+        }
+    }
+    set_float_exception_flags(fef, &env->fp_status);
+}
+
+uint32_t HELPER(rur_fsr)(CPUXtensaState *env)
+{
+    uint32_t flags = 0;
+    int fef = get_float_exception_flags(&env->fp_status);
+    unsigned i;
+
+    for (i = 0; i < ARRAY_SIZE(xtensa_fp_flag_map); ++i) {
+        if (fef & xtensa_fp_flag_map[i].softfloat_fp_flag) {
+            flags |= xtensa_fp_flag_map[i].xtensa_fp_flag;
+        }
+    }
+    return (env->uregs[FSR] & 0xfffff000) | (flags << XTENSA_FSR_FLAGS_SHIFT);
 }
 
 float32 HELPER(abs_s)(float32 v)

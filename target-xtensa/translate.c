@@ -800,11 +800,24 @@ static void gen_wur(uint32_t ur, TCGv_i32 s)
         break;
 
     case FSR:
-        tcg_gen_andi_i32(cpu_UR[ur], s, 0xffffff80);
+        gen_helper_wur_fsr(cpu_env, s);
         break;
 
     default:
         tcg_gen_mov_i32(cpu_UR[ur], s);
+        break;
+    }
+}
+
+static void gen_rur(TCGv_i32 d, uint32_t ur)
+{
+    switch (ur) {
+    case FSR:
+        gen_helper_rur_fsr(d, cpu_env);
+        break;
+
+    default:
+        tcg_gen_mov_i32(d, cpu_UR[ur]);
         break;
     }
 }
@@ -1888,7 +1901,7 @@ static void disas_xtensa_insn(CPUXtensaState *env, DisasContext *dc)
                 if (gen_window_check1(dc, RRR_R)) {
                     int st = (RRR_S << 4) + RRR_T;
                     if (uregnames[st].name) {
-                        tcg_gen_mov_i32(cpu_R[RRR_R], cpu_UR[st]);
+                        gen_rur(cpu_R[RRR_R], st);
                     } else {
                         qemu_log("RUR %d not implemented, ", st);
                         TBD();

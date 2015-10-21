@@ -22,113 +22,114 @@ test_suite fp0_arith
     wfr     \fr, a2
 .endm
 
-.macro check_res fr, r
+.macro check_res fr, r, sr
     rfr     a2, \fr
     //dump    a2
     movi    a3, \r
     assert  eq, a2, a3
     rur     a2, fsr
-    assert  eqi, a2, 0
+    movi    a3, \sr
+    assert  eq, a2, a3
 .endm
 
-.macro test_op1_rm op, fr0, fr1, v0, r
+.macro test_op1_rm op, fr0, fr1, v0, r, sr
     movi    a2, 0
     wur     a2, fsr
     movfp   \fr0, \v0
     \op     \fr1, \fr0
-    check_res \fr1, \r
+    check_res \fr1, \r, \sr
 .endm
 
-.macro test_op1_2_rm op, fr0, fr1, v0, v1, r
+.macro test_op1_2_rm op, fr0, fr1, v0, v1, r, sr
     movi    a2, 0
     wur     a2, fsr
     movfp   \fr0, \v0
     movfp   \fr1, \v1
     \op     \fr1, \fr0
-    check_res \fr1, \r
+    check_res \fr1, \r, \sr
 .endm
 
-.macro test_op2_rm op, fr0, fr1, fr2, v0, v1, r
+.macro test_op2_rm op, fr0, fr1, fr2, v0, v1, r, sr
     movi    a2, 0
     wur     a2, fsr
     movfp   \fr0, \v0
     movfp   \fr1, \v1
     \op     \fr2, \fr0, \fr1
-    check_res \fr2, \r
+    check_res \fr2, \r, \sr
 .endm
 
-.macro test_op3_rm op, fr0, fr1, fr2, fr3, v0, v1, v2, r
+.macro test_op3_rm op, fr0, fr1, fr2, fr3, v0, v1, v2, r, sr
     movi    a2, 0
     wur     a2, fsr
     movfp   \fr0, \v0
     movfp   \fr1, \v1
     movfp   \fr2, \v2
     \op     \fr0, \fr1, \fr2
-    check_res \fr3, \r
+    check_res \fr3, \r, \sr
 .endm
 
-.macro test_op1_ex op, fr0, fr1, v0, rm, r
+.macro test_op1_ex op, fr0, fr1, v0, rm, r, sr
     movi    a2, \rm
     wur     a2, fcr
-    test_op1_rm \op, \fr0, \fr1, \v0, \r
+    test_op1_rm \op, \fr0, \fr1, \v0, \r, \sr
     movi    a2, (\rm) | 0x7c
     wur     a2, fcr
-    test_op1_rm \op, \fr0, \fr1, \v0, \r
+    test_op1_rm \op, \fr0, \fr1, \v0, \r, \sr
 .endm
 
-.macro test_op1_2_ex op, fr0, fr1, v0, v1, rm, r
+.macro test_op1_2_ex op, fr0, fr1, v0, v1, rm, r, sr
     movi    a2, \rm
     wur     a2, fcr
-    test_op1_2_rm \op, \fr0, \fr1, \v0, \v1, \r
+    test_op1_2_rm \op, \fr0, \fr1, \v0, \v1, \r, \sr
     movi    a2, (\rm) | 0x7c
     wur     a2, fcr
-    test_op1_2_rm \op, \fr0, \fr1, \v0, \v1, \r
+    test_op1_2_rm \op, \fr0, \fr1, \v0, \v1, \r, \sr
 .endm
 
-.macro test_op2_ex op, fr0, fr1, fr2, v0, v1, rm, r
+.macro test_op2_ex op, fr0, fr1, fr2, v0, v1, rm, r, sr
     movi    a2, \rm
     wur     a2, fcr
-    test_op2_rm \op, \fr0, \fr1, \fr2, \v0, \v1, \r
+    test_op2_rm \op, \fr0, \fr1, \fr2, \v0, \v1, \r, \sr
     movi    a2, (\rm) | 0x7c
     wur     a2, fcr
-    test_op2_rm \op, \fr0, \fr1, \fr2, \v0, \v1, \r
+    test_op2_rm \op, \fr0, \fr1, \fr2, \v0, \v1, \r, \sr
 .endm
 
-.macro test_op3_ex op, fr0, fr1, fr2, fr3, v0, v1, v2, rm, r
+.macro test_op3_ex op, fr0, fr1, fr2, fr3, v0, v1, v2, rm, r, sr
     movi    a2, \rm
     wur     a2, fcr
-    test_op3_rm \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, \r
+    test_op3_rm \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, \r, \sr
     movi    a2, (\rm) | 0x7c
     wur     a2, fcr
-    test_op3_rm \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, \r
+    test_op3_rm \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, \r, \sr
 .endm
 
-.macro test_op1 op, fr0, fr1, v0, r0, r1, r2, r3
-    test_op1_ex \op, \fr0, \fr1, \v0, 0, \r0
-    test_op1_ex \op, \fr0, \fr1, \v0, 1, \r1
-    test_op1_ex \op, \fr0, \fr1, \v0, 2, \r2
-    test_op1_ex \op, \fr0, \fr1, \v0, 3, \r3
+.macro test_op1 op, fr0, fr1, v0, r0, r1, r2, r3, sr0, sr1, sr2, sr3
+    test_op1_ex \op, \fr0, \fr1, \v0, 0, \r0, \sr0
+    test_op1_ex \op, \fr0, \fr1, \v0, 1, \r1, \sr1
+    test_op1_ex \op, \fr0, \fr1, \v0, 2, \r2, \sr2
+    test_op1_ex \op, \fr0, \fr1, \v0, 3, \r3, \sr3
 .endm
 
-.macro test_op1_2 op, fr0, fr1, v0, v1, r0, r1, r2, r3
-    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 0, \r0
-    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 1, \r1
-    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 2, \r2
-    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 3, \r3
+.macro test_op1_2 op, fr0, fr1, v0, v1, r0, r1, r2, r3, sr0, sr1, sr2, sr3
+    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 0, \r0, \sr0
+    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 1, \r1, \sr1
+    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 2, \r2, \sr2
+    test_op1_2_ex \op, \fr0, \fr1, \v0, \v1, 3, \r3, \sr3
 .endm
 
-.macro test_op2 op, fr0, fr1, fr2, v0, v1, r0, r1, r2, r3
-    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 0, \r0
-    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 1, \r1
-    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 2, \r2
-    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 3, \r3
+.macro test_op2 op, fr0, fr1, fr2, v0, v1, r0, r1, r2, r3, sr0, sr1, sr2, sr3
+    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 0, \r0, \sr0
+    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 1, \r1, \sr1
+    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 2, \r2, \sr2
+    test_op2_ex \op, \fr0, \fr1, \fr2, \v0, \v1, 3, \r3, \sr3
 .endm
 
-.macro test_op3 op, fr0, fr1, fr2, fr3, v0, v1, v2, r0, r1, r2, r3
-    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 0, \r0
-    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 1, \r1
-    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 2, \r2
-    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 3, \r3
+.macro test_op3 op, fr0, fr1, fr2, fr3, v0, v1, v2, r0, r1, r2, r3, sr0, sr1, sr2, sr3
+    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 0, \r0, \sr0
+    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 1, \r1, \sr1
+    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 2, \r2, \sr2
+    test_op3_ex \op, \fr0, \fr1, \fr2, \fr3, \v0, \v1, \v2, 3, \r3, \sr3
 .endm
 
 .macro test_op2_cpe op
@@ -156,80 +157,102 @@ test add_s
     wsr     a2, cpenable
 
     test_op2 add.s, f0, f1, f2, 0x3fc00000, 0x34400000, \
-        0x3fc00002, 0x3fc00001, 0x3fc00002, 0x3fc00001
+        0x3fc00002, 0x3fc00001, 0x3fc00002, 0x3fc00001, \
+        0x00000080, 0x00000080, 0x00000080, 0x00000080
     test_op2 add.s, f3, f4, f5, 0x3fc00000, 0x34a00000, \
-        0x3fc00002, 0x3fc00002, 0x3fc00003, 0x3fc00002
+        0x3fc00002, 0x3fc00002, 0x3fc00003, 0x3fc00002, \
+        0x00000080, 0x00000080, 0x00000080, 0x00000080
 
     /* MAX_FLOAT + MAX_FLOAT = +inf/MAX_FLOAT  */
     test_op2 add.s, f6, f7, f8, 0x7f7fffff, 0x7f7fffff, \
-        0x7f800000, 0x7f7fffff, 0x7f800000, 0x7f7fffff
+        0x7f800000, 0x7f7fffff, 0x7f800000, 0x7f7fffff, \
+        0x00000280, 0x00000280, 0x00000280, 0x00000280
 test_end
 
 test add_s_inf
     /* 1 + +inf = +inf  */
     test_op2 add.s, f6, f7, f8, 0x3fc00000, 0x7f800000, \
-        0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000
+        0x7f800000, 0x7f800000, 0x7f800000, 0x7f800000, \
+        0x00000000, 0x00000000, 0x00000000, 0x00000000
 
     /* +inf + -inf = default NaN */
     test_op2 add.s, f0, f1, f2, 0x7f800000, 0xff800000, \
-        0x7fc00000, 0x7fc00000, 0x7fc00000, 0x7fc00000
+        0x7fc00000, 0x7fc00000, 0x7fc00000, 0x7fc00000, \
+        0x00000800, 0x00000800, 0x00000800, 0x00000800
 test_end
 
 test add_s_nan
-    /* 1 + NaN = NaN  */
+    /* 1 + QNaN = QNaN  */
     test_op2 add.s, f9, f10, f11, 0x3fc00000, 0x7fc00001, \
-        0x7fc00001, 0x7fc00001, 0x7fc00001, 0x7fc00001
+        0x7fc00001, 0x7fc00001, 0x7fc00001, 0x7fc00001, \
+        0x00000000, 0x00000000, 0x00000000, 0x00000000
+    /* 1 + SNaN = QNaN  */
     test_op2 add.s, f12, f13, f14, 0x3fc00000, 0x7f800001, \
-        0x7f800001, 0x7f800001, 0x7f800001, 0x7f800001
+        0x7fc00001, 0x7fc00001, 0x7fc00001, 0x7fc00001, \
+        0x00000800, 0x00000800, 0x00000800, 0x00000800
 
-    /* NaN1 + NaN2 = NaN1 */
+    /* SNaN1 + SNaN2 = QNaN2 */
     test_op2 add.s, f15, f0, f1, 0x7f800001, 0x7fbfffff, \
-        0x7f800001, 0x7f800001, 0x7f800001, 0x7f800001
+        0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff, \
+        0x00000800, 0x00000800, 0x00000800, 0x00000800
     test_op2 add.s, f2, f3, f4, 0x7fbfffff, 0x7f800001, \
-        0x7fbfffff, 0x7fbfffff, 0x7fbfffff, 0x7fbfffff
+        0x7fc00001, 0x7fc00001, 0x7fc00001, 0x7fc00001, \
+        0x00000800, 0x00000800, 0x00000800, 0x00000800
+    /* QNaN1 + SNaN2 = QNaN2 */
     test_op2 add.s, f5, f6, f7, 0x7fc00001, 0x7fbfffff, \
-        0x7fc00001, 0x7fc00001, 0x7fc00001, 0x7fc00001
+        0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff, \
+        0x00000800, 0x00000800, 0x00000800, 0x00000800
+    /* SNaN1 + QNaN2 = QNaN2 */
     test_op2 add.s, f8, f9, f10, 0x7fbfffff, 0x7fc00001, \
-        0x7fbfffff, 0x7fbfffff, 0x7fbfffff, 0x7fbfffff
+        0x7fc00001, 0x7fc00001, 0x7fc00001, 0x7fc00001, \
+        0x00000800, 0x00000800, 0x00000800, 0x00000800
 test_end
 
 test sub_s
     test_op2 sub.s, f0, f1, f0, 0x3f800001, 0x33800000, \
-        0x3f800000, 0x3f800000, 0x3f800001, 0x3f800000
+        0x3f800000, 0x3f800000, 0x3f800001, 0x3f800000, \
+        0x00000080, 0x00000080, 0x00000080, 0x00000080
     test_op2 sub.s, f0, f1, f1, 0x3f800002, 0x33800000, \
-        0x3f800002, 0x3f800001, 0x3f800002, 0x3f800001
+        0x3f800002, 0x3f800001, 0x3f800002, 0x3f800001, \
+        0x00000080, 0x00000080, 0x00000080, 0x00000080
 
     /* norm - norm = denorm */
     test_op2 sub.s, f6, f7, f8, 0x00800001, 0x00800000, \
-        0x00000001, 0x00000001, 0x00000001, 0x00000001
+        0x00000001, 0x00000001, 0x00000001, 0x00000001, \
+        0x00000000, 0x00000000, 0x00000000, 0x00000000
 test_end
 
 test mul_s
     test_op2 mul.s, f0, f1, f2, 0x3f800001, 0x3f800001, \
-        0x3f800002, 0x3f800002, 0x3f800003, 0x3f800002
-
+        0x3f800002, 0x3f800002, 0x3f800003, 0x3f800002, \
+        0x00000080, 0x00000080, 0x00000080, 0x00000080
     /* MAX_FLOAT/2 * MAX_FLOAT/2 = +inf/MAX_FLOAT  */
     test_op2 mul.s, f6, f7, f8, 0x7f000000, 0x7f000000, \
-        0x7f800000, 0x7f7fffff, 0x7f800000, 0x7f7fffff
+        0x7f800000, 0x7f7fffff, 0x7f800000, 0x7f7fffff, \
+        0x00000280, 0x00000280, 0x00000280, 0x00000280
     /* min norm * min norm = 0/denorm */
     test_op2 mul.s, f6, f7, f8, 0x00800001, 0x00800000, \
-        0x00000000, 0x00000000, 0x00000001, 0x00000000
-
+        0x00000000, 0x00000000, 0x00000001, 0x00000000, \
+        0x00000180, 0x00000180, 0x00000180, 0x00000180
     /* inf * 0 = default NaN */
     test_op2 mul.s, f6, f7, f8, 0x7f800000, 0x00000000, \
-        0x7fc00000, 0x7fc00000, 0x7fc00000, 0x7fc00000
+        0x7fc00000, 0x7fc00000, 0x7fc00000, 0x7fc00000, \
+        0x00000800, 0x00000800, 0x00000800, 0x00000800
 test_end
 
 test madd_s
     test_op3 madd.s, f0, f1, f2, f0, 0, 0x3f800001, 0x3f800001, \
-        0x3f800002, 0x3f800002, 0x3f800003, 0x3f800002
+        0x3f800002, 0x3f800002, 0x3f800003, 0x3f800002, \
+        0x00000080, 0x00000080, 0x00000080, 0x00000080
 test_end
 
 test msub_s
     test_op3 msub.s, f0, f1, f2, f0, 0x3f800000, 0x3f800001, 0x3f800001, \
-        0xb4800000, 0xb4800000, 0xb4800000, 0xb4800001
+        0xb4800000, 0xb4800000, 0xb4800000, 0xb4800001, \
+        0x00000080, 0x00000080, 0x00000080, 0x00000080
 test_end
 
+#if 0
 #if XCHAL_HAVE_FP_DIV
 
 test div0_s
@@ -344,6 +367,7 @@ test mkdadj_s
         0x4fb7c000, 0x4fb7c000, 0x4fb7c000, 0x4fb7c000
 test_end
 
+#endif
 #endif
 
 #if XCHAL_HAVE_DFP
