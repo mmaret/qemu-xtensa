@@ -1237,16 +1237,10 @@ static void xtensa_esp8266_init(MachineState *machine)
     }
 }
 
-static QEMUMachine xtensa_esp8266_machine = {
-    .name = "esp8266",
-    .desc = "ESP8266 (" XTENSA_DEFAULT_CPU_MODEL ")",
-    .init = xtensa_esp8266_init,
-    .max_cpus = 1,
-};
-
-static void xtensa_lx_machines_init(void)
-{
-    qemu_register_machine(&xtensa_esp8266_machine);
+static void esp8266_machine_init(MachineClass *mc){
+    mc->desc = "ESP8266 (" XTENSA_DEFAULT_CPU_MODEL ")";
+    mc->init = xtensa_esp8266_init;
+    mc->max_cpus = 1;
 }
 
-machine_init(xtensa_lx_machines_init);
+DEFINE_MACHINE("esp8266", esp8266_machine_init);
