@@ -34,7 +34,7 @@
 #include "core-test_kc705_ca/core-isa.h"
 #include "overlay_tool.h"
 
-static const XtensaConfig test_kc705_ca = {
+static XtensaConfig test_kc705_ca = {
     .name = "test_kc705_ca",
     .gdb_regmap = {
         .num_regs = 121,

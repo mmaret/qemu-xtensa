@@ -6,7 +6,7 @@
 #include "core-dsp3400/core-isa.h"
 #include "overlay_tool.h"
 
-static const XtensaConfig dsp3400 = {
+static XtensaConfig dsp3400 = {
     .name = "dsp3400",
     .gdb_regmap = {
         .num_regs = 231,

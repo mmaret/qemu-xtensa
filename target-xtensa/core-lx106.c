@@ -6,7 +6,7 @@
 #include "core-lx106/core-isa.h"
 #include "overlay_tool.h"
 
-static const XtensaConfig lx106 __attribute__((unused)) = {
+static XtensaConfig lx106 __attribute__((unused)) = {
     .name = "lx106",
     .gdb_regmap = {
         .num_regs = 50,

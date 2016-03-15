@@ -6,7 +6,7 @@
 #include "core-cpu3400/core-isa.h"
 #include "overlay_tool.h"
 
-static const XtensaConfig cpu3400 = {
+static XtensaConfig cpu3400 = {
     .name = "cpu3400",
     .gdb_regmap = {
         .num_regs = 176,
