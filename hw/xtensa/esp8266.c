@@ -1209,7 +1209,7 @@ static void xtensa_esp8266_init(MachineState *machine)
         uint64_t elf_entry;
         uint64_t elf_lowaddr;
         int success = load_elf(kernel_filename, translate_phys_addr, cpu,
-                &elf_entry, &elf_lowaddr, NULL, be, ELF_MACHINE, 0);
+                &elf_entry, &elf_lowaddr, NULL, be, EM_XTENSA, 0);
         if (success > 0) {
             user_entry = elf_entry;
             rom_filename = "esp8266-call-user.rom";
